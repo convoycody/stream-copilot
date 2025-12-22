@@ -225,9 +225,9 @@ register_extensions(app, STATE)
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
     # ui_home.py should render safely on desktop
-    return HTMLResponse(render_home(request, STATE))
+    return HTMLResponse(render_home())
 
 
 @app.get("/ipad", response_class=HTMLResponse)
 def ipad(request: Request):
-    return HTMLResponse(render_ipad_home(request, STATE))
+    return HTMLResponse(render_ipad_home())
