@@ -1,4 +1,4 @@
-def render_home() -> str:
+def render_home(request=None, state=None) -> str:
     return r"""<!doctype html>
 <html>
 <head>
@@ -65,18 +65,11 @@ def render_home() -> str:
 
 </head>
 <body>
-<!-- IOS_FALLBACK_BLOCK_V1 -->
-<div style="padding:14px 16px;background:#111827;color:#e5e7eb;font:14px/1.35 -apple-system,system-ui,Segoe UI,Roboto,sans-serif;border-bottom:1px solid rgba(255,255,255,.12)"><b>Stream Co-Pilot loaded.</b> If you can read this, HTML/CSS is rendering. If the dashboard below is blank, it’s JavaScript or the video preview crashing iOS Safari.</div>
 
-<!-- BOOT_OK_BANNER_V10 -->
-<div style="position:sticky;top:0;z-index:999999;padding:12px 14px;background:#a3ff12;color:#062100;font:14px/1.2 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono','Courier New', monospace;border-bottom:3px solid rgba(0,0,0,.35)">BOOT OK (V10) — If you can’t see this, you are not loading the updated HTML.</div>
 
-<!-- BOOT_OK_BANNER_V2 -->
-<div id="bootOk" style="position:sticky;top:0;z-index:99999;padding:10px 12px;
-background:#16a34a;color:#001b08;font-weight:800;letter-spacing:.2px;
-border-bottom:2px solid rgba(0,0,0,.25)">
-  BOOT OK — HTML is rendering. If the rest is blank, CSS/JS/video is nuking layout.
-</div>
+
+
+
 
   <!-- UI_DEBUG_BANNER_V1 -->
   <div style="padding:12px 16px; background:#fffbcc; color:#111; font:14px system-ui; position:sticky; top:0; z-index:9999; border-bottom:1px solid #e6d98a;">

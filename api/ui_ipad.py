@@ -1,4 +1,4 @@
-def render_ipad_home() -> str:
+def render_ipad_home(request=None, state=None) -> str:
     # Ultra-safe HTML for iPad Safari: no video tag, minimal JS, no fancy layout.
     return """<!doctype html>
 <html>
