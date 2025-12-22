@@ -1,0 +1,27 @@
+# secrets
+.env
+*.key
+*.pem
+
+# python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+.envrc
+
+# logs / runtime
+*.log
+*.pid
+*.sqlite
+*.db
+
+# local reports / artifacts
+PROJECT_REPORT.md
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/
