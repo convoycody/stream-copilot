@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Stream Co-Pilot</title>
+  <style>
+    :root{
+      --bg:#0b0f14; --card:#111826; --card2:#0f1622; --text:#e6edf3; --muted:#8aa0b2;
+      --good:#27c07d; --warn:#f5c451; --bad:#ff5d5d; --line:#1f2a3a; --pill:#0b1220;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 18px;
+      --pad: 14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:var(--sans);background:linear-gradient(180deg,#070a0f 0%, #0b0f14 50%, #070a0f 100%);color:var(--text)}
+    .wrap{max-width:1200px;margin:0 auto;padding:16px}
+    .topbar{
+      display:flex; gap:12px; align-items:center; justify-content:space-between;
+      position:sticky; top:0; padding:12px 0; background:rgba(11,15,20,.75); backdrop-filter: blur(10px);
+      z-index:10;
+    }
+    .brand{display:flex;flex-direction:column;gap:2px}
+    .brand h1{font-size:18px;margin:0}
+    .brand .sub{font-size:12px;color:var(--muted)}
+    .pillrow{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .pill{
+      background:var(--pill); border:1px solid var(--line); border-radius:999px;
+      padding:8px 10px; font-size:12px; color:var(--muted); display:flex; gap:8px; align-items:center;
+    }
+    .dot{width:8px;height:8px;border-radius:999px;background:var(--bad);display:inline-block}
+    .dot.good{background:var(--good)}
+    .dot.warn{background:var(--warn)}
+    .grid{
+      display:grid; gap:12px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 900px){
+      .grid{grid-template-columns: 1.05fr .95fr;}
+      .leftcol{display:grid;gap:12px; grid-template-rows:auto auto 1fr;}
+      .rightcol{display:grid;gap:12px; grid-template-rows:auto 1fr auto;}
+    }
+    .card{
+      background:linear-gradient(180deg,var(--card) 0%, var(--card2) 100%);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:var(--pad);
+      box-shadow:var(--shadow);
+    }
+    .card h2{margin:0 0 10px 0;font-size:14px;color:#cfe2f2;letter-spacing:.2px}
+    .row{display:flex;gap:10px;align-items:center;justify-content:space-between}
+    .muted{color:var(--muted)}
+    .mono{font-family:var(--mono)}
+    .kpiGrid{display:grid;gap:10px;grid-template-columns: repeat(2, 1fr);}
+    @media (min-width: 600px){ .kpiGrid{grid-template-columns: repeat(4, 1fr);} }
+    .kpi{
+      padding:10px;border-radius:14px;border:1px solid var(--line);
+      background:rgba(10,15,25,.55);
+    }
+    .kpi .label{font-size:11px;color:var(--muted)}
+    .kpi .val{font-size:18px;margin-top:6px}
+    .scorebar{height:10px;border-radius:999px;background:#0b1220;border:1px solid var(--line);overflow:hidden;margin-top:8px}
+    .scorebar > div{height:100%;width:0%}
+    .good{background:var(--good)}
+    .warn{background:var(--warn)}
+    .bad{background:var(--bad)}
+    .list{display:flex;flex-direction:column;gap:8px}
+    .item{
+      padding:10px;border-radius:14px;border:1px solid var(--line);
+      background:rgba(10,15,25,.45);
+    }
+    .item .t{font-size:13px}
+    .item .b{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.35}
+    .chatline{display:flex;gap:8px;align-items:flex-start}
+    .chatuser{font-weight:600}
+    .chatmsg{color:#cfd9e2}
+    .chatmeta{font-size:11px;color:var(--muted);margin-top:2px}
+    .split{display:grid;gap:10px;grid-template-columns: 1fr;}
+    @media(min-width: 600px){ .split{grid-template-columns: 1fr 1fr;} }
+    input, textarea{
+      width:100%; background:#0b1220; color:var(--text); border:1px solid var(--line);
+      border-radius:12px; padding:10px; outline:none;
+      font-family:var(--sans);
+    }
+    textarea{min-height:90px; resize:vertical}
+    button{
+      background:#17243a; color:#e6edf3; border:1px solid var(--line); border-radius:12px;
+      padding:10px 12px; font-weight:600; cursor:pointer;
+    }
+    button:active{transform:translateY(1px)}
+    .tiny{font-size:11px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <h1>Stream Co-Pilot</h1>
+        <div class="sub">iPad Dashboard • live streamer signals + AI talking points</div>
+      </div>
+
+      <div class="pillrow">
+        <div class="pill"><span class="dot" id="dotObs"></span><span>OBS</span><span class="mono" id="obsScene">—</span></div>
+        <div class="pill"><span class="dot" id="dotApi"></span><span>API</span><span class="mono" id="apiAge">—</span></div>
+        <div class="pill"><span class="muted">Topic:</span> <span id="topicText">—</span></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="leftcol">
+        <div class="card">
+          <div class="row">
+            <h2 style="margin:0">Live Scores</h2>
+            <div class="muted tiny">Updates every 2s</div>
+          </div>
+          <div class="kpiGrid" id="kpis"></div>
+          <div class="split" style="margin-top:10px">
+            <div class="item">
+              <div class="t">AI Summary</div>
+              <div class="b" id="aiSummary">—</div>
+            </div>
+            <div class="item">
+              <div class="t">AI Next Question</div>
+              <div class="b" id="aiNextQ">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="row">
+            <h2 style="margin:0">Recommendations</h2>
+            <div class="muted tiny">Talking points + topic ideas</div>
+          </div>
+          <div class="list" id="talkingPoints"></div>
+        </div>
+
+        <div class="card">
+          <div class="row">
+            <h2 style="margin:0">Resources (pre-stream uploads)</h2>
+            <div class="muted tiny">Notes / Run-of-show / Sponsor bullets</div>
+          </div>
+          <div class="list" id="resourcesList"></div>
+
+          <div style="margin-top:12px" class="split">
+            <div>
+              <div class="muted tiny" style="margin-bottom:6px">Set Stream Topic</div>
+              <input id="topicInput" placeholder="e.g., Live coding: Stream Co-Pilot UI build" />
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button onclick="setTopic()">Set Topic</button>
+                <button onclick="refreshNow()">Refresh</button>
+              </div>
+              <div class="muted tiny" style="margin-top:8px">Tip: keep it short and specific.</div>
+            </div>
+
+            <div>
+              <div class="muted tiny" style="margin-bottom:6px">Add Resource (quick paste)</div>
+              <input id="resTitle" placeholder="Resource title (e.g., Sponsor read)" />
+              <textarea id="resBody" placeholder="Paste your notes / bullets here..."></textarea>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button onclick="addResource()">Add Resource</button>
+                <button onclick="clearRes()">Clear</button>
+              </div>
+              <div class="muted tiny" style="margin-top:8px">Stored in memory for now (we’ll persist later).</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rightcol">
+        <div class="card">
+          <div class="row">
+            <h2 style="margin:0">Chat</h2>
+            <div class="muted tiny">Latest messages</div>
+          </div>
+          <div class="list" id="chatList"></div>
+        </div>
+
+        <div class="card">
+          <div class="row">
+            <h2 style="margin:0">System</h2>
+            <div class="muted tiny mono" id="updatedAt">—</div>
+          </div>
+          <div class="list">
+            <div class="item">
+              <div class="t">OBS Sources</div>
+              <div class="b mono" id="obsSources">—</div>
+            </div>
+            <div class="item">
+              <div class="t">Health</div>
+              <div class="b" id="healthText">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="row">
+            <h2 style="margin:0">Streamer Notes</h2>
+            <div class="muted tiny">Quick reminders</div>
+          </div>
+          <div class="list">
+            <div class="item"><div class="t">Explain what you’re doing</div><div class="b">Say the “why”, then the “what”, then the next step.</div></div>
+            <div class="item"><div class="t">Invite chat</div><div class="b">Ask one clear question every few minutes. Make chat the co-host.</div></div>
+            <div class="item"><div class="t">Pace check</div><div class="b">If you’ve been silent, narrate decisions out loud.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const API = location.origin;
+
+function clamp(n,min,max){ return Math.max(min, Math.min(max,n)); }
+function pct(n){ return clamp(Math.round(n*100),0,100); }
+
+function scoreClass(v){
+  if (v >= 0.75) return "good";
+  if (v >= 0.45) return "warn";
+  return "bad";
+}
+function dotClass(v){
+  if (v === "good") return "good";
+  if (v === "warn") return "warn";
+  return "";
+}
+
+function renderKpis(scores){
+  const el = document.getElementById("kpis");
+  el.innerHTML = "";
+  const entries = Object.entries(scores || {});
+  for (const [k, obj] of entries){
+    const val = (obj?.value ?? 0);
+    const label = (obj?.label ?? k);
+    const cls = scoreClass(val);
+    const div = document.createElement("div");
+    div.className = "kpi";
+    div.innerHTML = `
+      <div class="label">${label}</div>
+      <div class="val">${pct(val)}%</div>
+      <div class="scorebar"><div class="${cls}" style="width:${pct(val)}%"></div></div>
+      <div class="label" style="margin-top:8px">${obj?.hint ?? ""}</div>
+    `;
+    el.appendChild(div);
+  }
+}
+
+function renderChat(msgs){
+  const el = document.getElementById("chatList");
+  el.innerHTML = "";
+  (msgs || []).slice(0,20).forEach(m=>{
+    const div = document.createElement("div");
+    div.className = "item";
+    const ts = m.ts ? new Date(m.ts*1000).toLocaleTimeString() : "";
+    div.innerHTML = `
+      <div class="chatline">
+        <div class="chatuser">${escapeHtml(m.user || "anon")}:</div>
+        <div class="chatmsg">${escapeHtml(m.text || "")}</div>
+      </div>
+      <div class="chatmeta">${escapeHtml(ts)}</div>
+    `;
+    el.appendChild(div);
+  });
+  if (!msgs || msgs.length === 0){
+    el.innerHTML = `<div class="item"><div class="b muted">No chat yet.</div></div>`;
+  }
+}
+
+function renderTalkingPoints(arr){
+  const el = document.getElementById("talkingPoints");
+  el.innerHTML = "";
+  (arr || []).forEach(t=>{
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = `<div class="t">${escapeHtml(t)}</div>`;
+    el.appendChild(div);
+  });
+  if (!arr || arr.length === 0){
+    el.innerHTML = `<div class="item"><div class="b muted">No recommendations yet.</div></div>`;
+  }
+}
+
+function renderResources(list){
+  const el = document.getElementById("resourcesList");
+  el.innerHTML = "";
+  (list || []).forEach(r=>{
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = `<div class="t">${escapeHtml(r.title || "Untitled")}</div><div class="b">${escapeHtml((r.body || "").slice(0,220))}</div>`;
+    el.appendChild(div);
+  });
+  if (!list || list.length === 0){
+    el.innerHTML = `<div class="item"><div class="b muted">No resources uploaded yet.</div></div>`;
+  }
+}
+
+function escapeHtml(s){
+  return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+}
+
+async function fetchState(){
+  try{
+    const r = await fetch(`${API}/api/state`, {cache:"no-store"});
+    if (!r.ok) throw new Error("bad status");
+    const data = await r.json();
+
+    // topbar
+    const obsScene = data?.obs?.scene || "—";
+    document.getElementById("obsScene").textContent = obsScene;
+
+    const obsOk = obsScene && !String(obsScene).includes("disconnected") && !String(obsScene).includes("Unknown");
+    document.getElementById("dotObs").className = "dot " + (obsOk ? "good" : "warn");
+
+    const now = Date.now()/1000;
+    const age = data?.updated ? (now - data.updated) : 9999;
+    document.getElementById("apiAge").textContent = `${Math.round(age)}s`;
+    document.getElementById("dotApi").className = "dot " + (age < 6 ? "good" : "warn");
+
+    const topic = data?.stream?.topic || "—";
+    document.getElementById("topicText").textContent = topic;
+
+    // scores
+    renderKpis(data?.scores || {});
+    document.getElementById("aiSummary").textContent = data?.outputs?.summary || "—";
+    document.getElementById("aiNextQ").textContent = data?.outputs?.next_question || "—";
+    renderTalkingPoints(data?.outputs?.talking_points || []);
+
+    // chat
+    renderChat(data?.chat?.last_20 || []);
+
+    // system
+    const sources = (data?.obs?.sources || []).join(" • ") || "—";
+    document.getElementById("obsSources").textContent = sources;
+    document.getElementById("updatedAt").textContent = data?.updated ? new Date(data.updated*1000).toLocaleString() : "—";
+
+    // resources
+    renderResources(data?.resources || []);
+
+    // health
+    const h = [];
+    h.push(obsOk ? "OBS linked" : "OBS not linked");
+    h.push((data?.chat?.last_20 || []).length ? "Chat flowing" : "No chat");
+    document.getElementById("healthText").textContent = h.join(" • ");
+
+  }catch(e){
+    document.getElementById("dotApi").className = "dot";
+    document.getElementById("apiAge").textContent = "offline";
+  }
+}
+
+async function setTopic(){
+  const t = document.getElementById("topicInput").value.trim();
+  if (!t) return;
+  await fetch(`${API}/api/stream/topic`, {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({topic:t})});
+  document.getElementById("topicInput").value = "";
+  await fetchState();
+}
+
+async function addResource(){
+  const title = document.getElementById("resTitle").value.trim();
+  const body = document.getElementById("resBody").value.trim();
+  if (!title && !body) return;
+  await fetch(`${API}/api/resources`, {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({title, body})});
+  document.getElementById("resTitle").value = "";
+  document.getElementById("resBody").value = "";
+  await fetchState();
+}
+
+function clearRes(){
+  document.getElementById("resTitle").value = "";
+  document.getElementById("resBody").value = "";
+}
+
+async function refreshNow(){ await fetchState(); }
+
+fetchState();
+setInterval(fetchState, 2000);
+</script>
+</body>
+</html>

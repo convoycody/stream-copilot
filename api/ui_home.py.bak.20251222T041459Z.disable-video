@@ -1,0 +1,394 @@
+def render_home() -> str:
+    return r"""<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Stream Co-Pilot</title>
+  <style>
+    :root { --bg:#0b0b10; --card:#12121a; --line:#1f1f2b; --txt:#eaeaf2; --muted:rgba(234,234,242,.72); --good:#4ade80; --warn:#fbbf24; --bad:#fb7185; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin:0; background:var(--bg); color:var(--txt); }
+    .top { padding:14px 16px; background:var(--card); position:sticky; top:0; border-bottom:1px solid var(--line); z-index:20; }
+    .title { font-size:16px; font-weight:650; }
+    .sub { font-size:12px; color:var(--muted); }
+    .grid { display:grid; grid-template-columns: 1.1fr .9fr; gap:12px; padding:12px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px; }
+    h2 { margin:0 0 10px; font-size:14px; letter-spacing:.2px; }
+    .row { display:flex; justify-content:space-between; gap:10px; margin:8px 0; align-items:center; }
+    .pill { display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08); font-size:12px; }
+    .dot { width:8px; height:8px; border-radius:999px; background:var(--warn); display:inline-block; }
+    .bar { height:10px; background:#0e0e14; border:1px solid rgba(255,255,255,.07); border-radius:999px; overflow:hidden; }
+    .bar > div { height:100%; width:0%; background:#66e; }
+    .kvs { display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
+    .kv { padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,.07); background:rgba(255,255,255,.04); }
+    .kv .k { font-size:12px; color:var(--muted); }
+    .kv .v { font-size:16px; font-weight:700; margin-top:2px; }
+    .chat { max-height:40vh; overflow:auto; padding-right:6px; }
+    .msg { padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,.07); background:rgba(255,255,255,.03); margin:8px 0; }
+    .msg .u { font-size:12px; color:var(--muted); margin-bottom:4px; }
+    .msg .t { font-size:14px; line-height:1.35; }
+    .list { display:flex; flex-direction:column; gap:8px; }
+    .li { padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,.07); background:rgba(255,255,255,.03); }
+    .muted { color:var(--muted); font-size:12px; }
+    .btn { cursor:pointer; user-select:none; padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.06); color:var(--txt); font-weight:600; }
+    .btn:active { transform: translateY(1px); }
+    input { width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.12); background:#0e0e14; color:var(--txt); }
+    @media (max-width: 900px){ .grid{grid-template-columns:1fr;} .chat{max-height:32vh;} }
+  
+    .hot { font-weight:800; }
+    .tag { display:inline-flex; align-items:center; gap:6px; padding:3px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.06); font-size:12px; }
+    .tag.good { border-color: rgba(74,222,128,.25); background: rgba(74,222,128,.10); }
+    .tag.warn { border-color: rgba(251,191,36,.25); background: rgba(251,191,36,.10); }
+    .tag.bad  { border-color: rgba(251,113,133,.25); background: rgba(251,113,133,.10); }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .divider { height:1px; background: rgba(255,255,255,.08); margin:10px 0; }
+    .previewWrap { position: relative; width:100%; border-radius:14px; overflow:hidden; border:1px solid rgba(255,255,255,.10); background:#0e0e14; }
+    .previewOverlay {
+      position:absolute; left:0; right:0; bottom:0;
+      padding:10px 12px;
+      background: linear-gradient(transparent, rgba(0,0,0,.75));
+      color: #fff;
+      font-size: 16px;
+      line-height: 1.25;
+      text-shadow: 0 2px 12px rgba(0,0,0,.65);
+      pointer-events:none;
+    }
+    .overlayTop {
+      position:absolute; left:10px; top:10px;
+      padding:6px 10px; border-radius:999px;
+      background: rgba(0,0,0,.55);
+      border: 1px solid rgba(255,255,255,.15);
+      color: #fff;
+      font-size: 12px;
+      pointer-events:none;
+    }
+
+</head>
+<body>
+<!-- BOOT_OK_BANNER_V2 -->
+<div id="bootOk" style="position:sticky;top:0;z-index:99999;padding:10px 12px;
+background:#16a34a;color:#001b08;font-weight:800;letter-spacing:.2px;
+border-bottom:2px solid rgba(0,0,0,.25)">
+  BOOT OK — HTML is rendering. If the rest is blank, CSS/JS/video is nuking layout.
+</div>
+
+  <!-- UI_DEBUG_BANNER_V1 -->
+  <div style="padding:12px 16px; background:#fffbcc; color:#111; font:14px system-ui; position:sticky; top:0; z-index:9999; border-bottom:1px solid #e6d98a;">
+    ✅ Stream Co-Pilot UI loaded. If the dashboard looks blank, scroll down and check the error box below.
+  </div>
+  <pre id="jsErrors" style="margin:0; padding:10px 16px; white-space:pre-wrap; background:#2a0f12; color:#ffd5dc; border-bottom:1px solid #5b1b24; display:none;"></pre>
+
+  <div class="top">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+      <div>
+        <div class="title">Stream Co-Pilot</div>
+        <div class="sub" id="topline">Loading…</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span class="pill"><span class="dot" id="statusDot"></span><span id="statusTxt">Connecting</span></span>
+        <button class="btn" onclick="refreshNow()">Refresh</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Stream status</h2>
+      <div class="kvs">
+        <div class="kv"><div class="k">Topic</div><div class="v" id="topic">—</div></div>
+        <div class="kv"><div class="k">Mode</div><div class="v" id="mode">—</div></div>
+        <div class="kv"><div class="k">OBS Scene</div><div class="v" id="scene">—</div></div>
+        <div class="kv"><div class="k">Updated</div><div class="v" id="updated">—</div></div>
+      </div>
+
+      <div style="height:12px"></div>
+      <h2>Live scores</h2>
+      <div id="scores"></div>
+      <div class="muted" style="margin-top:8px;">These scores will become real once we connect chat + OBS events + your stream topic/resources.</div>
+    </div>
+
+    <div class="card">
+      <h2>AI recommendations</h2>
+      <div class="muted" id="aiMeta">—</div>
+      <div class="list" id="talkingPoints"></div>
+      <div style="height:10px"></div>
+      <div class="li">
+        <div class="muted">Next question</div>
+        <div id="nextQ" style="font-size:14px;font-weight:650;margin-top:4px;">—</div>
+      </div>
+      <div style="height:10px"></div>
+      <div class="li">
+        <div class="muted">Chat summary</div>
+        <div id="summary" style="font-size:14px;margin-top:4px;">—</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Chat</h2>
+      <div class="muted" id="chatMeta">—</div>
+      <div class="chat" id="chat"></div>
+    </div>
+
+    <div class="card">
+      <h2>Resources</h2>
+      <div class="muted">Paste links/notes here (we’ll wire saving next)</div>
+      <div style="height:8px"></div>
+      <input id="resInput" placeholder="Paste a link or note and press Enter…" onkeydown="resKey(event)" />
+      <div style="height:10px"></div>
+      <div class="list" id="resources"></div>
+    </div>
+  </div>
+    <div class="card">
+      <h2>Stream preview</h2>
+      <div class="muted" id="previewMeta">STREAM_PREVIEW_CARD_V1: Waiting for HLS… (Start Streaming in OBS)</div>
+      <div style="height:10px"></div>
+      <div class="previewWrap">
+  <div class="overlayTop" id="overlayTop">Captions: ON</div>
+  <video id="preview" controls playsinline muted
+             style="width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:#0e0e14;">
+      </video>
+  <div class="previewOverlay" id="previewOverlay">—</div>
+</div>
+    </div>
+
+
+<script>
+
+  // UI_DEBUG_BANNER_V1
+  (function(){
+    const box = document.getElementById('jsErrors');
+    function show(msg){
+      if(!box) return;
+      box.style.display='block';
+      box.textContent += msg + "\n";
+    }
+    window.addEventListener('error', (e)=>{
+      show('[JS error] ' + (e.message||'') + ' @ ' + (e.filename||'') + ':' + (e.lineno||'') );
+    });
+    window.addEventListener('unhandledrejection', (e)=>{
+      show('[Promise rejection] ' + (e.reason && (e.reason.stack||e.reason.message||e.reason) ));
+    });
+  })();
+  const el = (id) => document.getElementById(id);
+  const clamp01 = (v) => Math.max(0, Math.min(1, v ?? 0));
+  function pct(v){ return Math.round(clamp01(v)*100); }
+
+  function setStatus(ok){
+    el("statusDot").style.background = ok ? "var(--good)" : "var(--bad)";
+    el("statusTxt").textContent = ok ? "Online" : "Offline";
+  }
+
+  function scoreRow(name, v){
+    return `
+      <div class="row">
+        <div style="min-width:110px;font-weight:650;">${name}</div>
+        <div style="flex:1">
+          <div class="bar"><div style="width:${pct(v)}%"></div></div>
+        </div>
+        <div style="width:42px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums;">${pct(v)}%</div>
+      </div>`;
+  }
+
+
+  async function fetchTranscript(){
+    const r = await fetch("/api/transcript", { cache: "no-store" });
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    return await r.json();
+  }
+
+  function txLine(item){
+    const txt = escapeHtml(item.text || "");
+    const conf = Math.round((item.confidence ?? 0.55) * 100);
+    const ts = item.ts ? new Date(item.ts*1000).toLocaleTimeString() : "";
+    return `<div class="li"><div style="display:flex;justify-content:space-between;gap:10px;">
+      <div class="mono muted">${ts}</div><div class="tag ${conf>=70?'good':conf>=50?'warn':'bad'}">${conf}%</div>
+    </div><div style="margin-top:6px;font-size:14px;">${txt}</div></div>`;
+  }
+
+  function pickCaption(tx){
+    const lines = (tx && tx.lines) ? tx.lines : [];
+    if(!lines.length) return "Waiting for speech…";
+    return (lines[lines.length-1].text || "…").slice(0, 180);
+  }
+
+  async function fetchState(){
+    const r = await fetch("/api/state", { cache: "no-store" });
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    return await r.json();
+  }
+
+  function render(state){
+    const stream = state.stream || {};
+    const obs = state.obs || {};
+    const scores = state.scores || {};
+    const rec = state.recommendations || {};
+    const oc = (rec.overall_confidence ?? null);
+    const us = (rec.usefulness ?? null);
+    const cov = rec.coverage || {};
+    const covTxt = Object.keys(cov).length ? ("cov: " + Object.entries(cov).map(([k,v])=>`${k} ${fmtPct(v)}%`).join(" • ")) : "";
+    el("aiMeta").textContent = (oc==null && us==null) ? "—" : `Confidence ${fmtPct(oc)}% • Usefulness ${fmtPct(us)}% ${covTxt ? "• " + covTxt : ""}`;
+    const chat = (state.chat && state.chat.last_20) ? state.chat.last_20 : [];
+    const resources = state.resources || [];
+    const updated = state.updated ? new Date(state.updated*1000) : null;
+
+    el("topic").textContent = stream.topic ?? "—";
+    el("mode").textContent = stream.mode ?? "—";
+    el("scene").textContent = obs.scene ?? "—";
+    el("updated").textContent = updated ? updated.toLocaleTimeString() : "—";
+    el("topline").textContent = `Scene: ${obs.scene ?? "—"} • Chat: ${chat.length} • Topic: ${stream.topic ?? "—"}`;
+
+    el("scores").innerHTML = [
+      scoreRow("Energy", scores.energy),
+      scoreRow("Clarity", scores.clarity),
+      scoreRow("Engagement", scores.engagement),
+      scoreRow("Pace", scores.pace),
+    ].join("");
+
+    const tps = (rec.talking_points || []).slice(0,6);
+    el("talkingPoints").innerHTML = tps.length
+      ? tps.map(recLine).join("")
+      : `<div class="li muted">No recommendations yet.</div>`;
+
+    el("nextQ").textContent = (rec.next_question && rec.next_question.text) ? rec.next_question.text : (rec.next_question ?? "—");
+    el("summary").textContent = rec.summary ?? "—";
+
+    el("chatMeta").textContent = chat.length ? `Last ${chat.length} messages` : "No chat yet.";
+    el("chat").innerHTML = chat.length
+      ? chat.slice().reverse().map(m => `
+          <div class="msg">
+            <div class="u">${(m.user||"user")} • ${(m.ts? new Date(m.ts*1000).toLocaleTimeString(): "")}</div>
+            <div class="t">${escapeHtml(m.text||"")}</div>
+          </div>`).join("")
+      : `<div class="msg"><div class="t muted">Waiting for chat…</div></div>`;
+
+    
+    // Transcript + understanding
+    const tx = state.transcript || {};
+    const u = tx.understanding || {};
+    el("whatHappening").textContent = u.what || "—";
+    el("intents").textContent = (u.intents && u.intents.length) ? u.intents.join(" • ") : "—";
+    el("keywords").textContent = (u.keywords && u.keywords.length) ? u.keywords.join(" • ") : "—";
+
+    const lines = tx.lines || [];
+    el("txMeta").textContent = tx.ok ? `Transcribing • ${lines.length} lines` : (tx.status || "—");
+    el("transcript").innerHTML = lines.length ? lines.slice(-6).map(txLine).join("") : `<div class="li muted">Waiting for transcription…</div>`;
+
+    // Overlay captions on preview
+    const cap = pickCaption(tx);
+    const ov = document.getElementById("previewOverlay");
+    if(ov) ov.textContent = cap;
+
+    el("resources").innerHTML = resources.length
+
+      ? resources.map(r => `<div class="li">${escapeHtml(r.title||r.text||String(r))}</div>`).join("")
+      : `<div class="li muted">No resources uploaded yet.</div>`;
+  }
+
+
+  function fmtPct(v){ return Math.round(Math.max(0, Math.min(1, (v ?? 0))) * 100); }
+
+  function recLine(item){
+    if(!item) return "";
+    const txt = escapeHtml(item.text || "");
+    const why = escapeHtml(item.why || "");
+    const conf = fmtPct(item.confidence);
+    const based = (item.based_on || []).join(", ");
+    return `
+      <div class="li">
+        <div style="display:flex;justify-content:space-between;gap:10px;">
+          <div style="font-weight:650;">${txt}</div>
+          <div class="pill" title="Confidence">${conf}%</div>
+        </div>
+        ${why ? `<div class="muted" style="margin-top:6px;">Why: ${why}</div>` : ""}
+        ${based ? `<div class="muted" style="margin-top:4px;">Based on: ${escapeHtml(based)}</div>` : ""}
+      </div>`;
+  }
+
+  function escapeHtml(s){
+
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  
+  async function setPreview(){
+    const v = document.getElementById("preview");
+    const meta = document.getElementById("previewMeta");
+    if(!v || !meta) return;
+
+    // If already bound, do nothing
+    if(v.dataset.bound === "1") return;
+
+    try{
+      const hlsUrl = `${location.protocol}//${location.hostname}/hls/preview.m3u8`;
+    const r = await fetch(hlsUrl, { method: "GET", cache: "no-store", headers: { "Range": "bytes=0-0" } });
+      if(!r.ok) throw new Error("no playlist");
+      v.src = hlsUrl;
+      try { v.load(); await v.play(); } catch(e) {}
+      try { v.load(); await v.play(); } catch(e) {}
+      v.dataset.bound = "1";
+      meta.textContent = "Live HLS preview (nginx-rtmp). If it’s black, wait ~5-10s after going live.";
+    }catch(e){
+      // keep waiting
+    }
+  }
+
+async function tick(){
+    try{
+      const st = await fetchState();
+      const tx = await fetchTranscript();
+      st.transcript = tx;
+      setStatus(true);
+      render(st);
+      setPreview();
+    }catch(e){
+      setStatus(false);
+      el("topline").textContent = "Disconnected…";
+    }
+  }
+
+  async function refreshNow(){ await tick(); }
+
+  async function resKey(ev){
+    if(ev.key !== "Enter") return;
+    const v = el("resInput").value.trim();
+    if(!v) return;
+    el("resInput").value = "";
+
+    try{
+      const r = await fetch("/api/resources", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text: v })
+      });
+      if(!r.ok){
+        const t = await r.text();
+        throw new Error("HTTP " + r.status + " " + t);
+      }
+      await tick(); // refresh UI
+    }catch(e){
+      alert("Save failed: " + (e && e.message ? e.message : e));
+    }
+  }
+
+  tick();
+  setInterval(tick, 1200);
+  // --- keep HLS preview near the live edge (iPad Safari drifts) ---
+  function snapToLiveEdge(){
+    const v = el("preview");
+    if(!v) return;
+    try{
+      const seek = v.seekable;
+      if(seek && seek.length){
+        const liveEdge = seek.end(seek.length-1);
+        const behind = liveEdge - v.currentTime;
+        // if we're more than ~1.8s behind, jump forward
+        if(behind > 1.8 && isFinite(liveEdge)){
+          v.currentTime = Math.max(0, liveEdge - 0.4);
+        }
+      }
+    }catch(e){}
+  }
+  setInterval(snapToLiveEdge, 750);
+
+</script>
+</body>
+</html>"""

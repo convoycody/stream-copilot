@@ -1,0 +1,108 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Stream Co-Pilot</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; background: #0b0b10; color: #eaeaf2; }
+    .top { padding: 14px 16px; background: #12121a; position: sticky; top: 0; border-bottom: 1px solid #1f1f2b; }
+    .grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 12px; padding: 12px; }
+    .card { background: #12121a; border: 1px solid #1f1f2b; border-radius: 14px; padding: 12px; }
+    h2 { margin: 0 0 10px; font-size: 16px; }
+    .small { opacity: 0.75; font-size: 12px; }
+    .row { display:flex; justify-content: space-between; gap: 10px; margin: 6px 0; }
+    .bar { height: 10px; background:#1f1f2b; border-radius: 999px; overflow:hidden; }
+    .bar > div { height: 100%; background: #66e; width: 50%; }
+    .chat { max-height: 46vh; overflow:auto; }
+    .pill { display:inline-block; padding: 4px 8px; border-radius: 999px; background:#1f1f2b; font-size: 12px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } .chat { max-height: 34vh; } }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div id="topic" style="font-size:18px;font-weight:700;">Stream Co-Pilot</div>
+        <div class="small">OBS Scene: <span id="scene">-</span> • Updated: <span id="updated">-</span></div>
+      </div>
+      <div class="pill" id="status">connecting…</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Live Scores</h2>
+      <div id="scores"></div>
+      <div class="small" style="margin-top:10px;">These are placeholders until we wire real telemetry.</div>
+    </div>
+
+    <div class="card">
+      <h2>AI Recommendations</h2>
+      <div id="talking_points"></div>
+      <div style="margin-top:10px;"><b>Next question:</b> <span id="next_question">-</span></div>
+      <div style="margin-top:10px;"><b>Summary:</b> <span id="summary">-</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Chat</h2>
+      <div class="chat" id="chat"></div>
+    </div>
+
+    <div class="card">
+      <h2>Resources (pre-stream uploads)</h2>
+      <div id="resources" class="small">None yet.</div>
+    </div>
+  </div>
+
+<script>
+  function fmtTime(ts){
+    try { return new Date(ts*1000).toLocaleTimeString(); } catch(e){ return "-"; }
+  }
+  function scoreRow(name, val){
+    const pct = Math.round((val||0)*100);
+    return `
+      <div class="row"><div>${name}</div><div>${pct}%</div></div>
+      <div class="bar"><div style="width:${pct}%"></div></div>
+    `;
+  }
+
+  async function tick(){
+    try{
+      const r = await fetch("/api/state", {cache:"no-store"});
+      const s = await r.json();
+      document.getElementById("status").textContent = "online";
+      document.getElementById("topic").textContent = s.stream?.topic || "Stream Co-Pilot";
+      document.getElementById("scene").textContent = s.obs?.scene || "-";
+      document.getElementById("updated").textContent = s.updated ? fmtTime(s.updated) : "-";
+
+      const scores = s.scores || {};
+      document.getElementById("scores").innerHTML =
+        scoreRow("Energy", scores.energy) +
+        scoreRow("Clarity", scores.clarity) +
+        scoreRow("Engagement", scores.engagement) +
+        scoreRow("Pace", scores.pace);
+
+      const rec = s.recommendations || {};
+      const tp = (rec.talking_points || []).map(x => `<div>• ${x}</div>`).join("");
+      document.getElementById("talking_points").innerHTML = tp || "<div class='small'>No talking points yet.</div>";
+      document.getElementById("next_question").textContent = rec.next_question || "-";
+      document.getElementById("summary").textContent = rec.summary || "-";
+
+      const chat = (s.chat?.last_20 || []).slice().reverse().map(m =>
+        `<div class="small"><b>${m.user}</b> <span style="opacity:.6">${fmtTime(m.ts)}</span><div>${m.text}</div></div><hr style="border:0;border-top:1px solid #1f1f2b;margin:10px 0;">`
+      ).join("");
+      document.getElementById("chat").innerHTML = chat || "<div class='small'>No chat yet.</div>";
+
+      const res = s.resources || [];
+      document.getElementById("resources").textContent = res.length ? res.join(", ") : "None yet.";
+    }catch(e){
+      document.getElementById("status").textContent = "offline";
+    }
+  }
+
+  tick();
+  setInterval(tick, 1500);
+</script>
+</body>
+</html>

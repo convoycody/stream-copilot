@@ -1,0 +1,283 @@
+import time
+import asyncio
+from pathlib import Path
+from fastapi import FastAPI, Body, HTTPException
+from fastapi.responses import HTMLResponse
+from pydantic import BaseModel
+from dotenv import load_dotenv
+from api.store import load_resources, save_resources, load_stream, save_stream
+from api.ui_home import render_home
+
+from collector.obs_ws import obs_worker
+
+load_dotenv()
+
+app = FastAPI(title="Stream Co-Pilot")
+
+STATE = {
+    "stream": {
+        "topic": "Untitled Stream",
+        "mode": "default",
+        "started": None,
+    },
+    "scores": {
+        "energy": 0.65,
+        "clarity": 0.70,
+        "engagement": 0.55,
+        "pace": 0.60,
+    },
+    "obs": {"scene": "OBS: not connected", "sources": []},
+    "chat": {"last_20": []},
+    "resources": [],
+    "recommendations": {
+        "talking_points": [
+            "Explain what you’re doing in one sentence.",
+            "Call out progress + what’s next.",
+            "Ask chat a specific question."
+        ],
+        "next_question": "Do you want the quick version or the deep dive?",
+        "summary": "No chat yet."
+    },
+    "updated": None,
+}
+
+# ---- persistence bootstrap ----
+try:
+    _loaded_stream = load_stream()
+except Exception:
+    _loaded_stream = {"topic":"Untitled Stream","mode":"default","started":None}
+
+try:
+    _loaded_resources = load_resources()
+except Exception:
+    _loaded_resources = []
+
+STATE.setdefault("stream", _loaded_stream)
+STATE.setdefault("resources", _loaded_resources)
+STATE.setdefault("scores", {})
+STATE.setdefault("chat", {"last_20": []})
+STATE.setdefault("obs", {"scene": "Unknown", "sources": []})
+
+class ChatMsg(BaseModel):
+    user: str
+    text: str
+    ts: float | None = None
+
+class StreamConfig(BaseModel):
+    topic: str | None = None
+    mode: str | None = None
+
+@app.on_event("startup")
+async def startup_event():
+    STATE["updated"] = time.time()
+    asyncio.create_task(obs_worker(STATE))
+
+@app.get("/", response_class=HTMLResponse)
+def index():
+    html = Path("/root/stream-copilot/outputs/ui.html")
+    if html.exists():
+        return html.read_text(encoding="utf-8")
+    return "<h1>Stream Co-Pilot</h1><p>UI file missing.</p>"
+
+@app.get("/api/state")
+def get_state():
+    STATE["updated"] = time.time()
+    return STATE
+
+@app.post("/api/chat")
+def post_chat(msg: ChatMsg):
+    m = msg.model_dump()
+    if not m.get("ts"):
+        m["ts"] = time.time()
+    STATE["chat"]["last_20"].append(m)
+    STATE["chat"]["last_20"] = STATE["chat"]["last_20"][-20:]
+    STATE["recommendations"]["summary"] = f"Latest: {m['user']}: {m['text'][:80]}"
+    STATE["updated"] = time.time()
+    return {"ok": True}
+
+@app.post("/api/stream/config")
+def set_stream_config(cfg: StreamConfig):
+    if cfg.topic:
+        STATE["stream"]["topic"] = cfg.topic
+    if cfg.mode:
+        STATE["stream"]["mode"] = cfg.mode
+    STATE["updated"] = time.time()
+    return {"ok": True, "stream": STATE["stream"]}
+
+
+# ---- Stream + Resources API ----
+@app.get("/api/resources")
+def api_get_resources():
+    return {"resources": STATE.get("resources", [])}
+
+@app.post("/api/resources")
+def api_add_resource(payload: dict = Body(...)):
+    
+
+def compute_scores(STATE):
+    """Rule-based scoring v0.1: 0..1 scores used by UI."""
+    import time
+    now = time.time()
+
+    stream = STATE.get("stream", {}) or {}
+    obs = STATE.get("obs", {}) or {}
+    chat = (STATE.get("chat", {}) or {}).get("last_20", []) or []
+    resources = STATE.get("resources", []) or []
+
+    started = stream.get("started")
+    started_ok = 1.0 if started else 0.3
+
+    recent = [m for m in chat if isinstance(m, dict) and m.get("ts") and (now - float(m["ts"])) < 120]
+    msg_rate = min(1.0, len(recent) / 8.0)
+
+    scene = (obs.get("scene") or "Unknown").strip()
+    obs_ok = 1.0 if (scene and "disconnected" not in scene.lower() and scene.lower() != "unknown") else 0.4
+
+    res_ok = min(1.0, len(resources) / 10.0)
+
+    energy = 0.45 * msg_rate + 0.35 * started_ok + 0.20 * obs_ok
+    engagement = 0.60 * msg_rate + 0.25 * started_ok + 0.15 * res_ok
+    clarity = 0.55 * res_ok + 0.25 * started_ok + 0.20 * obs_ok
+    pace = 0.50 * msg_rate + 0.35 * started_ok + 0.15 * obs_ok
+
+    def clamp(x): 
+        return max(0.0, min(1.0, float(x)))
+
+    STATE["scores"] = {
+        "energy": clamp(energy),
+        "clarity": clamp(clarity),
+        "engagement": clamp(engagement),
+        "pace": clamp(pace),
+    }
+
+# ===========================
+# Stream Co-Pilot extensions
+# ===========================
+
+from fastapi import Body, HTTPException
+from api.store import load_resources, save_resources, load_stream, save_stream
+
+# ---- persistence bootstrap ----
+try:
+    _loaded_stream = load_stream()
+except Exception:
+    _loaded_stream = {"topic":"Untitled Stream","mode":"default","started":None}
+
+try:
+    _loaded_resources = load_resources()
+except Exception:
+    _loaded_resources = []
+
+STATE.setdefault("stream", _loaded_stream)
+STATE.setdefault("resources", _loaded_resources)
+
+# ---- Stream + Resources API ----
+@app.get("/api/resources")
+def api_get_resources():
+    return {"resources": STATE.get("resources", [])}
+
+@app.post("/api/resources")
+def api_add_resource(payload: dict = Body(...)):
+    text = (payload.get("text") or "").strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="text is required")
+
+    import time
+    item = {
+        "id": str(int(time.time()*1000)),
+        "text": text,
+        "title": (payload.get("title") or "").strip() or None,
+        "url": (payload.get("url") or "").strip() or None,
+        "tags": payload.get("tags") or [],
+        "ts": time.time(),
+    }
+
+    items = list(STATE.get("resources", []))
+    items.insert(0, item)
+    items = items[:200]
+    STATE["resources"] = items
+    save_resources(items)
+    STATE["updated"] = time.time()
+    return {"ok": True, "resource": item, "count": len(items)}
+
+@app.delete("/api/resources/{rid}")
+def api_delete_resource(rid: str):
+    items = list(STATE.get("resources", []))
+    new_items = [x for x in items if str(x.get("id")) != str(rid)]
+    if len(new_items) == len(items):
+        raise HTTPException(status_code=404, detail="not found")
+    STATE["resources"] = new_items
+    save_resources(new_items)
+    import time
+    STATE["updated"] = time.time()
+    return {"ok": True, "count": len(new_items)}
+
+@app.post("/api/stream/topic")
+def api_set_topic(payload: dict = Body(...)):
+    topic = (payload.get("topic") or "").strip()
+    if not topic:
+        raise HTTPException(status_code=400, detail="topic is required")
+    STATE.setdefault("stream", {})
+    STATE["stream"]["topic"] = topic
+    save_stream(STATE["stream"])
+    import time
+    STATE["updated"] = time.time()
+    return {"ok": True, "stream": STATE["stream"]}
+
+@app.post("/api/stream/mode")
+def api_set_mode(payload: dict = Body(...)):
+    mode = (payload.get("mode") or "").strip() or "default"
+    STATE.setdefault("stream", {})
+    STATE["stream"]["mode"] = mode
+    save_stream(STATE["stream"])
+    import time
+    STATE["updated"] = time.time()
+    return {"ok": True, "stream": STATE["stream"]}
+
+@app.post("/api/stream/start")
+def api_stream_start():
+    import time
+    STATE.setdefault("stream", {})
+    STATE["stream"]["started"] = time.time()
+    save_stream(STATE["stream"])
+    STATE["updated"] = time.time()
+    return {"ok": True, "stream": STATE["stream"]}
+
+@app.post("/api/stream/stop")
+def api_stream_stop():
+    import time
+    STATE.setdefault("stream", {})
+    STATE["stream"]["started"] = None
+    save_stream(STATE["stream"])
+    STATE["updated"] = time.time()
+    return {"ok": True, "stream": STATE["stream"]}
+
+# ---- scoring rules v0.1 ----
+def compute_scores(STATE):
+    import time
+    now = time.time()
+
+    stream = STATE.get("stream", {}) or {}
+    obs = STATE.get("obs", {}) or {}
+    chat = (STATE.get("chat", {}) or {}).get("last_20", []) or []
+    resources = STATE.get("resources", []) or []
+
+    started_ok = 1.0 if stream.get("started") else 0.3
+
+    recent = [m for m in chat if isinstance(m, dict) and m.get("ts") and (now - float(m["ts"])) < 120]
+    msg_rate = min(1.0, len(recent) / 8.0)
+
+    scene = (obs.get("scene") or "Unknown").strip()
+    obs_ok = 1.0 if (scene and "disconnected" not in scene.lower() and scene.lower() != "unknown") else 0.4
+
+    res_ok = min(1.0, len(resources) / 10.0)
+
+    def clamp(x): return max(0.0, min(1.0, float(x)))
+
+    STATE["scores"] = {
+        "energy": clamp(0.45*msg_rate + 0.35*started_ok + 0.20*obs_ok),
+        "engagement": clamp(0.60*msg_rate + 0.25*started_ok + 0.15*res_ok),
+        "clarity": clamp(0.55*res_ok + 0.25*started_ok + 0.20*obs_ok),
+        "pace": clamp(0.50*msg_rate + 0.35*started_ok + 0.15*obs_ok),
+    }
+

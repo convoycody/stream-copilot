@@ -1,0 +1,13 @@
+Netid State  Recv-Q Send-Q Local Address:Port Peer Address:PortProcess                                                                             
+udp   UNCONN 0      0         127.0.0.54:53        0.0.0.0:*    users:(("systemd-resolve",pid=395,fd=16))                                          
+udp   UNCONN 0      0      127.0.0.53%lo:53        0.0.0.0:*    users:(("systemd-resolve",pid=395,fd=14))                                          
+udp   UNCONN 0      0          127.0.0.1:323       0.0.0.0:*    users:(("chronyd",pid=879,fd=4))                                                   
+udp   UNCONN 0      0              [::1]:323          [::]:*    users:(("chronyd",pid=879,fd=5))                                                   
+tcp   LISTEN 0      2048         0.0.0.0:8811      0.0.0.0:*    users:(("uvicorn",pid=219230,fd=7))                                                
+tcp   LISTEN 0      511          0.0.0.0:80        0.0.0.0:*    users:(("nginx",pid=219322,fd=6),("nginx",pid=219318,fd=6),("nginx",pid=5729,fd=6))
+tcp   LISTEN 0      4096         0.0.0.0:22        0.0.0.0:*    users:(("sshd",pid=2862,fd=3),("systemd",pid=1,fd=249))                            
+tcp   LISTEN 0      4096   127.0.0.53%lo:53        0.0.0.0:*    users:(("systemd-resolve",pid=395,fd=15))                                          
+tcp   LISTEN 0      4096      127.0.0.54:53        0.0.0.0:*    users:(("systemd-resolve",pid=395,fd=17))                                          
+tcp   LISTEN 0      128        127.0.0.1:4455      0.0.0.0:*    users:(("sshd-session",pid=3389,fd=12))                                            
+tcp   LISTEN 0      511          0.0.0.0:1935      0.0.0.0:*    users:(("nginx",pid=219322,fd=5),("nginx",pid=219318,fd=5),("nginx",pid=5729,fd=5))
+tcp   LISTEN 0      4096            [::]:22           [::]:*    users:(("sshd",pid=2862,fd=4),("systemd",pid=1,fd=250))                            

@@ -1,0 +1,66 @@
+--- systemctl status stream-copilot.service ---
+● stream-copilot.service - Stream Co-Pilot API
+     Loaded: loaded (/etc/systemd/system/stream-copilot.service; enabled; preset: enabled)
+     Active: active (running) since Mon 2025-12-22 14:42:38 UTC; 4min 27s ago
+ Invocation: 9246b20b76b44f208dbc24aa8823e409
+   Main PID: 219230 (uvicorn)
+      Tasks: 2 (limit: 4582)
+     Memory: 34.3M (peak: 34.9M)
+        CPU: 1.107s
+     CGroup: /system.slice/stream-copilot.service
+             └─219230 /root/stream-copilot/venv/bin/python3 /root/stream-copilot/venv/bin/uvicorn api.app:app --host 0.0.0.0 --port 8811
+
+Dec 22 14:42:38 localhost uvicorn[219230]: INFO:     Started server process [219230]
+Dec 22 14:42:38 localhost uvicorn[219230]: INFO:     Waiting for application startup.
+Dec 22 14:42:38 localhost uvicorn[219230]: INFO:     Application startup complete.
+Dec 22 14:42:38 localhost uvicorn[219230]: INFO:     Uvicorn running on http://0.0.0.0:8811 (Press CTRL+C to quit)
+Dec 22 14:42:52 localhost uvicorn[219230]: INFO:     47.231.165.111:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 14:43:51 localhost uvicorn[219230]: INFO:     127.0.0.1:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 14:43:51 localhost uvicorn[219230]: INFO:     127.0.0.1:54752 - "GET / HTTP/1.1" 200 OK
+Dec 22 14:44:02 localhost uvicorn[219230]: INFO:     127.0.0.1:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 14:44:17 localhost uvicorn[219230]: INFO:     47.231.165.111:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 14:44:38 localhost uvicorn[219230]: INFO:     47.231.165.111:0 - "GET / HTTP/1.1" 200 OK
+
+--- systemctl status stream-copilot-transcribe.service ---
+● stream-copilot-transcribe.service - Stream Co-Pilot HLS Transcription Worker
+     Loaded: loaded (/etc/systemd/system/stream-copilot-transcribe.service; enabled; preset: enabled)
+     Active: active (running) since Mon 2025-12-22 03:55:42 UTC; 10h ago
+ Invocation: a65cedebae62400d8ad6e5ce09343efc
+   Main PID: 8510 (python3)
+      Tasks: 12 (limit: 4582)
+     Memory: 478.6M (peak: 638M)
+        CPU: 1h 18min 49.996s
+     CGroup: /system.slice/stream-copilot-transcribe.service
+             ├─  8510 /root/stream-copilot/venv/bin/python3 -u collector/transcribe_hls.py
+             └─219967 ffmpeg -hide_banner -loglevel error -y -i /var/www/html/hls/preview-75.ts -vn -ac 1 -ar 16000 -f wav /tmp/stream_copilot_hls.wav
+
+Dec 22 03:55:42 localhost systemd[1]: Started stream-copilot-transcribe.service - Stream Co-Pilot HLS Transcription Worker.
+
+--- systemctl status nginx.service ---
+● nginx.service - A high performance web server and a reverse proxy server
+     Loaded: loaded (/usr/lib/systemd/system/nginx.service; enabled; preset: enabled)
+     Active: active (running) since Mon 2025-12-22 03:29:22 UTC; 11h ago
+ Invocation: 1af3faec08f044e78f095ad369925a61
+       Docs: man:nginx(8)
+    Process: 219317 ExecReload=/usr/sbin/nginx -g daemon on; master_process on; -s reload (code=exited, status=0/SUCCESS)
+   Main PID: 5729 (nginx)
+      Tasks: 4 (limit: 4582)
+     Memory: 20.7M (peak: 27.5M)
+        CPU: 18min 29.092s
+     CGroup: /system.slice/nginx.service
+             ├─  5729 "nginx: master process /usr/sbin/nginx -g daemon on; master_process on;"
+             ├─219318 "nginx: worker process"
+             ├─219322 "nginx: worker process"
+             └─219323 "nginx: cache manager process"
+
+Dec 22 04:58:48 localhost systemd[1]: Reloaded nginx.service - A high performance web server and a reverse proxy server.
+Dec 22 04:59:59 localhost systemd[1]: Reloading nginx.service - A high performance web server and a reverse proxy server...
+Dec 22 04:59:59 localhost nginx[21337]: 2025/12/22 04:59:59 [notice] 21337#21337: signal process started
+Dec 22 04:59:59 localhost systemd[1]: Reloaded nginx.service - A high performance web server and a reverse proxy server.
+Dec 22 05:12:40 localhost systemd[1]: Reloading nginx.service - A high performance web server and a reverse proxy server...
+Dec 22 05:12:40 localhost nginx[24897]: 2025/12/22 05:12:40 [notice] 24897#24897: signal process started
+Dec 22 05:12:40 localhost systemd[1]: Reloaded nginx.service - A high performance web server and a reverse proxy server.
+Dec 22 14:44:02 localhost systemd[1]: Reloading nginx.service - A high performance web server and a reverse proxy server...
+Dec 22 14:44:02 localhost nginx[219317]: 2025/12/22 14:44:02 [notice] 219317#219317: signal process started
+Dec 22 14:44:02 localhost systemd[1]: Reloaded nginx.service - A high performance web server and a reverse proxy server.
+

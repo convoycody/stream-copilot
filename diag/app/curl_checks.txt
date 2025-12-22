@@ -1,0 +1,156 @@
+--- curl :80 / headers ---
+HTTP/1.1 200 OK
+Server: nginx/1.28.0 (Ubuntu)
+Date: Mon, 22 Dec 2025 14:47:06 GMT
+Content-Type: text/html; charset=utf-8
+Content-Length: 17708
+Connection: keep-alive
+cache-control: no-store, no-cache, must-revalidate, max-age=0
+pragma: no-cache
+
+
+--- curl :80 / first 40 lines ---
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Stream Co-Pilot</title>
+  <style>
+    :root { --bg:#0b0b10; --card:#12121a; --line:#1f1f2b; --txt:#eaeaf2; --muted:rgba(234,234,242,.72); --good:#4ade80; --warn:#fbbf24; --bad:#fb7185; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin:0; background:var(--bg); color:var(--txt); }
+    .top { padding:14px 16px; background:var(--card); position:sticky; top:0; border-bottom:1px solid var(--line); z-index:20; }
+    .title { font-size:16px; font-weight:650; }
+    .sub { font-size:12px; color:var(--muted); }
+    .grid { display:grid; grid-template-columns: 1.1fr .9fr; gap:12px; padding:12px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px; }
+    h2 { margin:0 0 10px; font-size:14px; letter-spacing:.2px; }
+    .row { display:flex; justify-content:space-between; gap:10px; margin:8px 0; align-items:center; }
+    .pill { display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08); font-size:12px; }
+    .dot { width:8px; height:8px; border-radius:999px; background:var(--warn); display:inline-block; }
+    .bar { height:10px; background:#0e0e14; border:1px solid rgba(255,255,255,.07); border-radius:999px; overflow:hidden; }
+    .bar > div { height:100%; width:0%; background:#66e; }
+    .kvs { display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
+    .kv { padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,.07); background:rgba(255,255,255,.04); }
+    .kv .k { font-size:12px; color:var(--muted); }
+    .kv .v { font-size:16px; font-weight:700; margin-top:2px; }
+    .chat { max-height:40vh; overflow:auto; padding-right:6px; }
+    .msg { padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,.07); background:rgba(255,255,255,.03); margin:8px 0; }
+    .msg .u { font-size:12px; color:var(--muted); margin-bottom:4px; }
+    .msg .t { font-size:14px; line-height:1.35; }
+    .list { display:flex; flex-direction:column; gap:8px; }
+    .li { padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,.07); background:rgba(255,255,255,.03); }
+    .muted { color:var(--muted); font-size:12px; }
+    .btn { cursor:pointer; user-select:none; padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.06); color:var(--txt); font-weight:600; }
+    .btn:active { transform: translateY(1px); }
+    input { width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.12); background:#0e0e14; color:var(--txt); }
+    @media (max-width: 900px){ .grid{grid-template-columns:1fr;} .chat{max-height:32vh;} }
+  
+    .hot { font-weight:800; }
+    .tag { display:inline-flex; align-items:center; gap:6px; padding:3px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.06); font-size:12px; }
+    .tag.good { border-color: rgba(74,222,128,.25); background: rgba(74,222,128,.10); }
+    .tag.warn { border-color: rgba(251,191,36,.25); background: rgba(251,191,36,.10); }
+
+--- curl :8811 / headers ---
+HTTP/1.1 200 OK
+date: Mon, 22 Dec 2025 14:47:06 GMT
+server: uvicorn
+content-length: 17708
+content-type: text/html; charset=utf-8
+cache-control: no-store, no-cache, must-revalidate, max-age=0
+pragma: no-cache
+
+
+--- curl :8811 / first 60 lines ---
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Stream Co-Pilot</title>
+  <style>
+    :root { --bg:#0b0b10; --card:#12121a; --line:#1f1f2b; --txt:#eaeaf2; --muted:rgba(234,234,242,.72); --good:#4ade80; --warn:#fbbf24; --bad:#fb7185; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin:0; background:var(--bg); color:var(--txt); }
+    .top { padding:14px 16px; background:var(--card); position:sticky; top:0; border-bottom:1px solid var(--line); z-index:20; }
+    .title { font-size:16px; font-weight:650; }
+    .sub { font-size:12px; color:var(--muted); }
+    .grid { display:grid; grid-template-columns: 1.1fr .9fr; gap:12px; padding:12px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px; }
+    h2 { margin:0 0 10px; font-size:14px; letter-spacing:.2px; }
+    .row { display:flex; justify-content:space-between; gap:10px; margin:8px 0; align-items:center; }
+    .pill { display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08); font-size:12px; }
+    .dot { width:8px; height:8px; border-radius:999px; background:var(--warn); display:inline-block; }
+    .bar { height:10px; background:#0e0e14; border:1px solid rgba(255,255,255,.07); border-radius:999px; overflow:hidden; }
+    .bar > div { height:100%; width:0%; background:#66e; }
+    .kvs { display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
+    .kv { padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,.07); background:rgba(255,255,255,.04); }
+    .kv .k { font-size:12px; color:var(--muted); }
+    .kv .v { font-size:16px; font-weight:700; margin-top:2px; }
+    .chat { max-height:40vh; overflow:auto; padding-right:6px; }
+    .msg { padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,.07); background:rgba(255,255,255,.03); margin:8px 0; }
+    .msg .u { font-size:12px; color:var(--muted); margin-bottom:4px; }
+    .msg .t { font-size:14px; line-height:1.35; }
+    .list { display:flex; flex-direction:column; gap:8px; }
+    .li { padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,.07); background:rgba(255,255,255,.03); }
+    .muted { color:var(--muted); font-size:12px; }
+    .btn { cursor:pointer; user-select:none; padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.06); color:var(--txt); font-weight:600; }
+    .btn:active { transform: translateY(1px); }
+    input { width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.12); background:#0e0e14; color:var(--txt); }
+    @media (max-width: 900px){ .grid{grid-template-columns:1fr;} .chat{max-height:32vh;} }
+  
+    .hot { font-weight:800; }
+    .tag { display:inline-flex; align-items:center; gap:6px; padding:3px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.06); font-size:12px; }
+    .tag.good { border-color: rgba(74,222,128,.25); background: rgba(74,222,128,.10); }
+    .tag.warn { border-color: rgba(251,191,36,.25); background: rgba(251,191,36,.10); }
+    .tag.bad  { border-color: rgba(251,113,133,.25); background: rgba(251,113,133,.10); }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .divider { height:1px; background: rgba(255,255,255,.08); margin:10px 0; }
+    .previewWrap { position: relative; width:100%; border-radius:14px; overflow:hidden; border:1px solid rgba(255,255,255,.10); background:#0e0e14; }
+    .previewOverlay {
+      position:absolute; left:0; right:0; bottom:0;
+      padding:10px 12px;
+      background: linear-gradient(transparent, rgba(0,0,0,.75));
+      color: #fff;
+      font-size: 16px;
+      line-height: 1.25;
+      text-shadow: 0 2px 12px rgba(0,0,0,.65);
+      pointer-events:none;
+    }
+    .overlayTop {
+      position:absolute; left:10px; top:10px;
+      padding:6px 10px; border-radius:999px;
+      background: rgba(0,0,0,.55);
+      border: 1px solid rgba(255,255,255,.15);
+      color: #fff;
+
+--- curl :80 /api/state ---
+HTTP/1.1 200 OK
+Server: nginx/1.28.0 (Ubuntu)
+Date: Mon, 22 Dec 2025 14:47:06 GMT
+Content-Type: application/json
+Content-Length: 501
+Connection: keep-alive
+
+
+--- curl :8811 /api/state ---
+HTTP/1.1 200 OK
+date: Mon, 22 Dec 2025 14:47:06 GMT
+server: uvicorn
+content-length: 500
+content-type: application/json
+
+
+--- curl :80 /hls/preview.m3u8 ---
+HTTP/1.1 200 OK
+Server: nginx/1.28.0 (Ubuntu)
+Date: Mon, 22 Dec 2025 14:47:06 GMT
+Content-Type: application/vnd.apple.mpegurl
+Content-Length: 161
+Last-Modified: Mon, 22 Dec 2025 14:47:04 GMT
+Connection: keep-alive
+ETag: "694959e8-a1"
+Cache-Control: no-store
+Access-Control-Allow-Origin: *
+Accept-Ranges: bytes
+
+

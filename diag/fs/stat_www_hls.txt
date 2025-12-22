@@ -1,0 +1,16 @@
+  File: /var/www/html
+  size: 4096      	Blocks: 8          IO Block: 4096   directory
+Device: 800h/2048d	Inode: 267080      Links: 3
+Access: (0755/drwxr-xr-x)  Uid: (    0/    root)   Gid: (    0/    root)
+Access: 2025-12-22 04:51:00.630846297 +0000
+Modify: 2025-12-22 02:42:31.408035812 +0000
+Change: 2025-12-22 02:42:31.408035812 +0000
+ Birth: 2025-12-22 02:29:25.649738642 +0000
+  File: /var/www/html/hls
+  size: 4096      	Blocks: 8          IO Block: 4096   directory
+Device: 800h/2048d	Inode: 267096      Links: 2
+Access: (0755/drwxr-xr-x)  Uid: (   33/www-data)   Gid: (   33/www-data)
+Access: 2025-12-22 14:47:06.564272245 +0000
+Modify: 2025-12-22 14:47:04.962607681 +0000
+Change: 2025-12-22 14:47:04.962607681 +0000
+ Birth: 2025-12-22 02:42:31.408035812 +0000

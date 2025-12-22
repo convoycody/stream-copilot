@@ -1,0 +1,80 @@
+from __future__ import annotations
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Literal
+
+Phase = Literal["PRELIVE","LIVE","DEEP_DIVE","QNA","WRAP","OFFLINE"]
+
+@dataclass
+class AIInputs:
+    now: float
+    topic: str = "Untitled Stream"
+    mode: str = "default"
+    started: Optional[float] = None
+    obs_scene: str = "Unknown"
+    scores: Dict[str, float] = field(default_factory=dict)          # 0..1
+    chat_last: List[Dict[str, Any]] = field(default_factory=list)    # last 20
+    resources: List[Dict[str, Any]] = field(default_factory=list)    # stored resources
+
+
+@dataclass
+class RecItem:
+    id: str
+    kind: Literal["talking_point","cue","alert","question","segment"]
+    text: str
+    confidence: float = 0.5      # 0..1
+    why: str = ""               # short rationale
+    based_on: List[str] = field(default_factory=list)  # e.g. ["chat","resources","obs","scores","topic"]
+
+@dataclass
+class ChatSignals:
+    msg_count: int = 0
+    question_count: int = 0
+    momentum_2m: float = 0.0          # 0..1
+    themes: List[str] = field(default_factory=list)
+    top_questions: List[str] = field(default_factory=list)
+    suggested_prompts: List[str] = field(default_factory=list)
+
+@dataclass
+class ResourceSignals:
+    count: int = 0
+    top_terms: List[str] = field(default_factory=list)
+    relevant_now: List[Dict[str, Any]] = field(default_factory=list)  # ranked subset
+
+@dataclass
+class TopicPlan:
+    headline: str = ""
+    segments: List[Dict[str, Any]] = field(default_factory=list)      # [{name, goal, done?}]
+    default_cta: str = "Drop a question in chat."
+
+@dataclass
+class HealthSignals:
+    obs_ok: bool = False
+    chat_ok: bool = False
+    resources_ok: bool = False
+    stream_started: bool = False
+    alerts: List[str] = field(default_factory=list)
+
+@dataclass
+class StreamState:
+    phase: Phase = "OFFLINE"
+    entered_ts: float = 0.0
+    last_user_action: Optional[str] = None
+    # memory of what we already suggested (avoid repeats)
+    recent_suggestions: List[str] = field(default_factory=list)
+
+@dataclass
+class AIOutput:
+    phase: Phase
+    summary: str
+    talking_points: List[RecItem]
+    next_question: RecItem
+    alerts: List[RecItem]
+    segments: List[Dict[str, Any]]
+    cues: List[RecItem]
+    resource_refs: List[Dict[str, Any]]
+    updated: float
+    overall_confidence: float = 0.5
+    usefulness: float = 0.5
+    coverage: Dict[str, float] = field(default_factory=dict)
+    provider: str = "logic_v1"
+    debug: Dict[str, Any] = field(default_factory=dict)

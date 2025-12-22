@@ -1,0 +1,4 @@
+root        8510  5.4 11.3 1685612 454828 ?      Ssl  03:55  35:29 /root/stream-copilot/venv/bin/python3 -u collector/transcribe_hls.py
+root      219230  0.4  1.2 136928 50868 ?        Ssl  14:42   0:01 /root/stream-copilot/venv/bin/python3 /root/stream-copilot/venv/bin/uvicorn api.app:app --host 0.0.0.0 --port 8811
+root      219950  0.0  0.1  15676  7280 pts/1    S+   14:47   0:00 tee -a /root/stream-copilot/diag/REPORT.txt
+root      220013  0.0  0.0   7036  2588 pts/1    S+   14:47   0:00 grep -E -i stream-copilot|uvicorn|fastapi|collector/transcribe_hls|nginx.*rtmp

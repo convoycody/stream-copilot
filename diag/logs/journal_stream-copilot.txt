@@ -1,0 +1,300 @@
+Dec 22 04:47:05 localhost systemd[1]: stream-copilot.service: Failed with result 'exit-code'.
+Dec 22 04:47:07 localhost systemd[1]: stream-copilot.service: Scheduled restart job, restart counter is at 41.
+Dec 22 04:47:07 localhost systemd[1]: Started stream-copilot.service - Stream Co-Pilot API.
+Dec 22 04:47:08 localhost uvicorn[20535]: Traceback (most recent call last):
+Dec 22 04:47:08 localhost uvicorn[20535]:   File "/root/stream-copilot/venv/bin/uvicorn", line 7, in <module>
+Dec 22 04:47:08 localhost uvicorn[20535]:     sys.exit(main())
+Dec 22 04:47:08 localhost uvicorn[20535]:              ~~~~^^
+Dec 22 04:47:08 localhost uvicorn[20535]:   File "/root/stream-copilot/venv/lib/python3.13/site-packages/click/core.py", line 1485, in __call__
+Dec 22 04:47:08 localhost uvicorn[20535]:     return self.main(*args, **kwargs)
+Dec 22 04:47:08 localhost uvicorn[20535]:            ~~~~~~~~~^^^^^^^^^^^^^^^^^
+Dec 22 04:47:08 localhost uvicorn[20535]:   File "/root/stream-copilot/venv/lib/python3.13/site-packages/click/core.py", line 1406, in main
+Dec 22 04:47:08 localhost uvicorn[20535]:     rv = self.invoke(ctx)
+Dec 22 04:47:08 localhost uvicorn[20535]:   File "/root/stream-copilot/venv/lib/python3.13/site-packages/click/core.py", line 1269, in invoke
+Dec 22 04:47:08 localhost uvicorn[20535]:     return ctx.invoke(self.callback, **ctx.params)
+Dec 22 04:47:08 localhost uvicorn[20535]:            ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Dec 22 04:47:08 localhost uvicorn[20535]:   File "/root/stream-copilot/venv/lib/python3.13/site-packages/click/core.py", line 824, in invoke
+Dec 22 04:47:08 localhost uvicorn[20535]:     return callback(*args, **kwargs)
+Dec 22 04:47:08 localhost uvicorn[20535]:   File "/root/stream-copilot/venv/lib/python3.13/site-packages/uvicorn/main.py", line 424, in main
+Dec 22 04:47:08 localhost uvicorn[20535]:     run(
+Dec 22 04:47:08 localhost uvicorn[20535]:     ~~~^
+Dec 22 04:47:08 localhost uvicorn[20535]:         app,
+Dec 22 04:47:08 localhost uvicorn[20535]:         ^^^^
+Dec 22 04:47:08 localhost uvicorn[20535]:     ...<46 lines>...
+Dec 22 04:47:08 localhost uvicorn[20535]:         h11_max_incomplete_event_size=h11_max_incomplete_event_size,
+Dec 22 04:47:08 localhost uvicorn[20535]:         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Dec 22 04:47:08 localhost uvicorn[20535]:     )
+Dec 22 04:47:08 localhost uvicorn[20535]:     ^
+Dec 22 04:47:08 localhost uvicorn[20535]:   File "/root/stream-copilot/venv/lib/python3.13/site-packages/uvicorn/main.py", line 594, in run
+Dec 22 04:47:08 localhost uvicorn[20535]:     server.run()
+Dec 22 04:47:08 localhost uvicorn[20535]:     ~~~~~~~~~~^^
+Dec 22 04:47:08 localhost uvicorn[20535]:   File "/root/stream-copilot/venv/lib/python3.13/site-packages/uvicorn/server.py", line 67, in run
+Dec 22 04:47:08 localhost uvicorn[20535]:     return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+Dec 22 04:47:08 localhost uvicorn[20535]:   File "/usr/lib/python3.13/asyncio/runners.py", line 195, in run
+Dec 22 04:47:08 localhost uvicorn[20535]:     return runner.run(main)
+Dec 22 04:47:08 localhost uvicorn[20535]:            ~~~~~~~~~~^^^^^^
+Dec 22 04:47:08 localhost uvicorn[20535]:   File "/usr/lib/python3.13/asyncio/runners.py", line 118, in run
+Dec 22 04:47:08 localhost uvicorn[20535]:     return self._loop.run_until_complete(task)
+Dec 22 04:47:08 localhost uvicorn[20535]:            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+Dec 22 04:47:08 localhost uvicorn[20535]:   File "/usr/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+Dec 22 04:47:08 localhost uvicorn[20535]:     return future.result()
+Dec 22 04:47:08 localhost uvicorn[20535]:            ~~~~~~~~~~~~~^^
+Dec 22 04:47:08 localhost uvicorn[20535]:   File "/root/stream-copilot/venv/lib/python3.13/site-packages/uvicorn/server.py", line 71, in serve
+Dec 22 04:47:08 localhost uvicorn[20535]:     await self._serve(sockets)
+Dec 22 04:47:08 localhost uvicorn[20535]:   File "/root/stream-copilot/venv/lib/python3.13/site-packages/uvicorn/server.py", line 78, in _serve
+Dec 22 04:47:08 localhost uvicorn[20535]:     config.load()
+Dec 22 04:47:08 localhost uvicorn[20535]:     ~~~~~~~~~~~^^
+Dec 22 04:47:08 localhost uvicorn[20535]:   File "/root/stream-copilot/venv/lib/python3.13/site-packages/uvicorn/config.py", line 439, in load
+Dec 22 04:47:08 localhost uvicorn[20535]:     self.loaded_app = import_from_string(self.app)
+Dec 22 04:47:08 localhost uvicorn[20535]:                       ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+Dec 22 04:47:08 localhost uvicorn[20535]:   File "/root/stream-copilot/venv/lib/python3.13/site-packages/uvicorn/importer.py", line 19, in import_from_string
+Dec 22 04:47:08 localhost uvicorn[20535]:     module = importlib.import_module(module_str)
+Dec 22 04:47:08 localhost uvicorn[20535]:   File "/usr/lib/python3.13/importlib/__init__.py", line 88, in import_module
+Dec 22 04:47:08 localhost uvicorn[20535]:     return _bootstrap._gcd_import(name[level:], package, level)
+Dec 22 04:47:08 localhost uvicorn[20535]:            ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Dec 22 04:47:08 localhost uvicorn[20535]:   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+Dec 22 04:47:08 localhost uvicorn[20535]:   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+Dec 22 04:47:08 localhost uvicorn[20535]:   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+Dec 22 04:47:08 localhost uvicorn[20535]:   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+Dec 22 04:47:08 localhost uvicorn[20535]:   File "<frozen importlib._bootstrap_external>", line 1026, in exec_module
+Dec 22 04:47:08 localhost uvicorn[20535]:   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+Dec 22 04:47:08 localhost uvicorn[20535]:   File "/root/stream-copilot/api/app.py", line 320, in <module>
+Dec 22 04:47:08 localhost uvicorn[20535]:     def home(request: Request):
+Dec 22 04:47:08 localhost uvicorn[20535]:                       ^^^^^^^
+Dec 22 04:47:08 localhost uvicorn[20535]: NameError: name 'Request' is not defined
+Dec 22 04:47:08 localhost systemd[1]: stream-copilot.service: Main process exited, code=exited, status=1/FAILURE
+Dec 22 04:47:08 localhost systemd[1]: stream-copilot.service: Failed with result 'exit-code'.
+Dec 22 04:47:10 localhost systemd[1]: stream-copilot.service: Scheduled restart job, restart counter is at 42.
+Dec 22 04:47:10 localhost systemd[1]: Started stream-copilot.service - Stream Co-Pilot API.
+Dec 22 04:47:10 localhost uvicorn[20544]: INFO:     Started server process [20544]
+Dec 22 04:47:10 localhost uvicorn[20544]: INFO:     Waiting for application startup.
+Dec 22 04:47:10 localhost uvicorn[20544]: INFO:     Application startup complete.
+Dec 22 04:47:10 localhost uvicorn[20544]: INFO:     Uvicorn running on http://0.0.0.0:8811 (Press CTRL+C to quit)
+Dec 22 04:47:16 localhost systemd[1]: Stopping stream-copilot.service - Stream Co-Pilot API...
+Dec 22 04:47:16 localhost uvicorn[20544]: INFO:     Shutting down
+Dec 22 04:47:16 localhost uvicorn[20544]: INFO:     Waiting for application shutdown.
+Dec 22 04:47:16 localhost uvicorn[20544]: INFO:     Application shutdown complete.
+Dec 22 04:47:16 localhost uvicorn[20544]: INFO:     Finished server process [20544]
+Dec 22 04:47:16 localhost systemd[1]: stream-copilot.service: Deactivated successfully.
+Dec 22 04:47:16 localhost systemd[1]: Stopped stream-copilot.service - Stream Co-Pilot API.
+Dec 22 04:47:16 localhost systemd[1]: Started stream-copilot.service - Stream Co-Pilot API.
+Dec 22 04:47:16 localhost uvicorn[20553]: INFO:     Started server process [20553]
+Dec 22 04:47:16 localhost uvicorn[20553]: INFO:     Waiting for application startup.
+Dec 22 04:47:16 localhost uvicorn[20553]: INFO:     Application startup complete.
+Dec 22 04:47:16 localhost uvicorn[20553]: INFO:     Uvicorn running on http://0.0.0.0:8811 (Press CTRL+C to quit)
+Dec 22 04:47:25 localhost uvicorn[20553]: INFO:     127.0.0.1:43692 - "GET / HTTP/1.0" 200 OK
+Dec 22 04:48:06 localhost uvicorn[20553]: INFO:     127.0.0.1:50722 - "GET /api/state HTTP/1.1" 200 OK
+Dec 22 04:48:06 localhost uvicorn[20553]: INFO:     127.0.0.1:50734 - "GET / HTTP/1.1" 200 OK
+Dec 22 04:48:12 localhost uvicorn[20553]: INFO:     127.0.0.1:37478 - "GET /api/state HTTP/1.1" 200 OK
+Dec 22 04:48:12 localhost uvicorn[20553]: INFO:     127.0.0.1:37488 - "GET / HTTP/1.1" 200 OK
+Dec 22 04:48:17 localhost uvicorn[20553]: INFO:     127.0.0.1:37504 - "GET / HTTP/1.0" 200 OK
+Dec 22 04:48:39 localhost uvicorn[20553]: INFO:     127.0.0.1:56876 - "GET / HTTP/1.0" 200 OK
+Dec 22 04:48:47 localhost uvicorn[20553]: INFO:     127.0.0.1:44522 - "GET /hls/preview.m3u8 HTTP/1.0" 404 Not Found
+Dec 22 04:48:58 localhost uvicorn[20553]: INFO:     127.0.0.1:42978 - "GET /hls/preview.m3u8 HTTP/1.0" 404 Not Found
+Dec 22 04:49:14 localhost uvicorn[20553]: INFO:     127.0.0.1:60962 - "GET /api/state HTTP/1.0" 200 OK
+Dec 22 04:49:14 localhost uvicorn[20553]: INFO:     127.0.0.1:60970 - "GET /hls/preview.m3u8 HTTP/1.0" 404 Not Found
+Dec 22 04:50:45 localhost uvicorn[20553]: INFO:     127.0.0.1:48408 - "GET /hls/preview.m3u8 HTTP/1.0" 404 Not Found
+Dec 22 04:51:18 localhost uvicorn[20553]: INFO:     127.0.0.1:52154 - "GET / HTTP/1.0" 200 OK
+Dec 22 04:51:19 localhost uvicorn[20553]: INFO:     127.0.0.1:52162 - "GET / HTTP/1.0" 200 OK
+Dec 22 04:52:33 localhost uvicorn[20553]: INFO:     127.0.0.1:40264 - "GET / HTTP/1.0" 200 OK
+Dec 22 04:52:33 localhost uvicorn[20553]: INFO:     127.0.0.1:40274 - "GET / HTTP/1.1" 200 OK
+Dec 22 04:52:33 localhost uvicorn[20553]: INFO:     127.0.0.1:40282 - "GET /api/state HTTP/1.0" 200 OK
+Dec 22 04:52:33 localhost uvicorn[20553]: INFO:     127.0.0.1:40288 - "GET /api/state HTTP/1.1" 200 OK
+Dec 22 04:52:33 localhost uvicorn[20553]: INFO:     127.0.0.1:40298 - "GET /hls/preview.m3u8 HTTP/1.0" 404 Not Found
+Dec 22 04:53:30 localhost uvicorn[20553]: INFO:     127.0.0.1:46722 - "GET / HTTP/1.0" 200 OK
+Dec 22 04:54:36 localhost uvicorn[20553]: INFO:     127.0.0.1:39216 - "GET / HTTP/1.0" 200 OK
+Dec 22 04:57:21 localhost uvicorn[20553]: INFO:     127.0.0.1:55706 - "GET / HTTP/1.0" 200 OK
+Dec 22 04:58:48 localhost uvicorn[20553]: INFO:     127.0.0.1:36422 - "GET /hls/preview.m3u8 HTTP/1.0" 404 Not Found
+Dec 22 05:09:20 localhost uvicorn[20553]: INFO:     127.0.0.1:52442 - "GET / HTTP/1.0" 200 OK
+Dec 22 05:09:21 localhost uvicorn[20553]: INFO:     127.0.0.1:52450 - "GET / HTTP/1.0" 200 OK
+Dec 22 05:12:40 localhost uvicorn[20553]: INFO:     127.0.0.1:39756 - "GET / HTTP/1.1" 200 OK
+Dec 22 05:12:40 localhost uvicorn[20553]: INFO:     127.0.0.1:39762 - "GET / HTTP/1.0" 200 OK
+Dec 22 05:12:40 localhost uvicorn[20553]: INFO:     127.0.0.1:39772 - "GET /api/state HTTP/1.0" 200 OK
+Dec 22 05:13:11 localhost uvicorn[20553]: INFO:     47.231.165.111:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 05:13:33 localhost uvicorn[20553]: INFO:     127.0.0.1:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 05:14:04 localhost uvicorn[20553]: INFO:     127.0.0.1:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 05:14:04 localhost uvicorn[20553]: INFO:     127.0.0.1:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 05:14:04 localhost uvicorn[20553]: INFO:     127.0.0.1:0 - "GET /api/state HTTP/1.1" 200 OK
+Dec 22 05:14:04 localhost uvicorn[20553]: INFO:     127.0.0.1:33334 - "GET /api/state HTTP/1.1" 200 OK
+Dec 22 05:17:05 localhost uvicorn[20553]: INFO:     47.231.165.111:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 05:17:06 localhost uvicorn[20553]: INFO:     47.231.165.111:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 05:19:11 localhost uvicorn[20553]: INFO:     35.203.210.10:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 05:20:35 localhost uvicorn[20553]: INFO:     47.231.165.111:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 05:20:36 localhost uvicorn[20553]: INFO:     47.231.165.111:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 05:21:33 localhost systemd[1]: Stopping stream-copilot.service - Stream Co-Pilot API...
+Dec 22 05:21:33 localhost uvicorn[20553]: INFO:     Shutting down
+Dec 22 05:21:33 localhost uvicorn[20553]: INFO:     Waiting for application shutdown.
+Dec 22 05:21:33 localhost uvicorn[20553]: INFO:     Application shutdown complete.
+Dec 22 05:21:33 localhost uvicorn[20553]: INFO:     Finished server process [20553]
+Dec 22 05:21:33 localhost systemd[1]: stream-copilot.service: Deactivated successfully.
+Dec 22 05:21:33 localhost systemd[1]: Stopped stream-copilot.service - Stream Co-Pilot API.
+Dec 22 05:21:33 localhost systemd[1]: stream-copilot.service: Consumed 5.464s CPU time, 35.4M memory peak.
+Dec 22 05:21:33 localhost systemd[1]: Started stream-copilot.service - Stream Co-Pilot API.
+Dec 22 05:21:34 localhost uvicorn[27210]: INFO:     Started server process [27210]
+Dec 22 05:21:34 localhost uvicorn[27210]: INFO:     Waiting for application startup.
+Dec 22 05:21:34 localhost uvicorn[27210]: INFO:     Application startup complete.
+Dec 22 05:21:34 localhost uvicorn[27210]: INFO:     Uvicorn running on http://0.0.0.0:8811 (Press CTRL+C to quit)
+Dec 22 05:32:05 localhost uvicorn[27210]: INFO:     87.121.84.57:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 06:08:54 localhost uvicorn[27210]: INFO:     89.42.231.239:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 06:18:20 localhost uvicorn[27210]: INFO:     45.135.194.23:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 06:18:20 localhost uvicorn[27210]: INFO:     87.236.176.46:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 06:29:13 localhost uvicorn[27210]: INFO:     204.76.203.219:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 06:41:53 localhost uvicorn[27210]: INFO:     193.142.147.209:0 - "POST / HTTP/1.1" 405 Method Not Allowed
+Dec 22 06:49:09 localhost uvicorn[27210]: INFO:     87.121.84.148:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 07:01:20 localhost uvicorn[27210]: INFO:     87.121.84.181:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 07:01:20 localhost uvicorn[27210]: INFO:     87.121.84.181:0 - "POST /cgi-bin/login HTTP/1.1" 404 Not Found
+Dec 22 07:05:24 localhost uvicorn[27210]: INFO:     141.98.11.140:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 07:33:05 localhost uvicorn[27210]: INFO:     91.232.238.112:0 - "GET /admin/config.php HTTP/1.1" 404 Not Found
+Dec 22 08:11:20 localhost uvicorn[27210]: INFO:     202.239.228.59:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 08:24:58 localhost uvicorn[27210]: INFO:     93.174.93.12:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 08:27:08 localhost uvicorn[27210]: INFO:     204.76.203.219:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 08:37:53 localhost uvicorn[27210]: INFO:     91.224.92.109:0 - "OPTIONS / HTTP/1.1" 405 Method Not Allowed
+Dec 22 08:38:03 localhost uvicorn[27210]: INFO:     89.42.231.239:0 - "GET /SDK/webLanguage HTTP/1.1" 404 Not Found
+Dec 22 08:39:12 localhost uvicorn[27210]: INFO:     89.42.231.239:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 08:39:27 localhost uvicorn[27210]: INFO:     91.232.238.106:0 - "GET /robots.txt HTTP/1.1" 404 Not Found
+Dec 22 09:30:14 localhost uvicorn[27210]: INFO:     193.142.147.209:0 - "POST / HTTP/1.1" 405 Method Not Allowed
+Dec 22 09:50:02 localhost uvicorn[27210]: INFO:     34.185.188.175:0 - "OPTIONS / HTTP/1.1" 405 Method Not Allowed
+Dec 22 10:15:15 localhost uvicorn[27210]: INFO:     204.76.203.219:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 10:29:01 localhost uvicorn[27210]: INFO:     164.90.220.37:0 - "GET /.config/sftp.json HTTP/1.1" 404 Not Found
+Dec 22 10:29:01 localhost uvicorn[27210]: INFO:     164.90.220.37:0 - "GET /sftp.json HTTP/1.1" 404 Not Found
+Dec 22 10:29:02 localhost uvicorn[27210]: INFO:     164.90.220.37:0 - "GET /mftp/application/frontend/css/monsta.css HTTP/1.1" 404 Not Found
+Dec 22 10:29:02 localhost uvicorn[27210]: INFO:     164.90.220.37:0 - "GET /application/frontend/css/monsta.css HTTP/1.1" 404 Not Found
+Dec 22 10:29:03 localhost uvicorn[27210]: INFO:     164.90.220.37:0 - "GET /.env HTTP/1.1" 404 Not Found
+Dec 22 10:29:03 localhost uvicorn[27210]: INFO:     164.90.220.37:0 - "GET /.vscode/sftp.json HTTP/1.1" 404 Not Found
+Dec 22 10:48:19 localhost uvicorn[27210]: INFO:     89.42.231.239:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 11:05:21 localhost uvicorn[27210]: INFO:     157.245.209.233:0 - "GET /admin/config.php HTTP/1.1" 404 Not Found
+Dec 22 11:16:56 localhost uvicorn[27210]: INFO:     87.121.84.57:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 11:25:32 localhost uvicorn[27210]: INFO:     72.146.234.81:0 - "POST /cgi-bin/luci/%3Bstok%3D/locale?form=country HTTP/1.1" 404 Not Found
+Dec 22 11:35:40 localhost uvicorn[27210]: INFO:     87.121.84.148:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 12:08:52 localhost uvicorn[27210]: INFO:     89.42.231.239:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 12:15:00 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "POST /hello.world?%ADd+allow_url_include%3d1+%ADd+auto_prepend_file%3dphp://input HTTP/1.1" 404 Not Found
+Dec 22 12:15:00 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "POST /?%ADd+allow_url_include%3d1+%ADd+auto_prepend_file%3dphp://input HTTP/1.1" 405 Method Not Allowed
+Dec 22 12:15:01 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:01 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /vendor/phpunit/phpunit/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:01 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /vendor/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:02 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /vendor/phpunit/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:02 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /vendor/phpunit/phpunit/LICENSE/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:03 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /vendor/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:04 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:04 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /phpunit/phpunit/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:05 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:06 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /phpunit/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:07 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /lib/phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:08 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /lib/phpunit/phpunit/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:08 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /lib/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:09 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /lib/phpunit/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:09 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /lib/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:09 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /laravel/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:10 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /www/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:10 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /ws/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:10 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /yii/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:11 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /zend/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:25 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /ws/ec/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:25 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /V2/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:26 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /tests/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:27 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /test/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:27 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /testing/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:28 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /api/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:28 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /demo/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:28 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /cms/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:29 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /crm/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:29 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /admin/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:30 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /backup/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:30 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /blog/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:31 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /workspace/drupal/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:32 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /panel/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:32 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /public/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:32 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /apps/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:32 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /app/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:33 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /index.php?s=/index/\think\app/invokefunction&function=call_user_func_array&vars[0]=md5&vars[1][]=Hello HTTP/1.1" 404 Not Found
+Dec 22 12:15:33 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /public/index.php?s=/index/\think\app/invokefunction&function=call_user_func_array&vars[0]=md5&vars[1][]=Hello HTTP/1.1" 404 Not Found
+Dec 22 12:15:33 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /index.php?lang=../../../../../../../../usr/local/lib/php/pearcmd&+config-create+/&/<?echo(md5("hi"));?>+/tmp/index1.php HTTP/1.1" 404 Not Found
+Dec 22 12:15:33 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /index.php?lang=../../../../../../../../tmp/index1 HTTP/1.1" 404 Not Found
+Dec 22 12:15:34 localhost uvicorn[27210]: INFO:     61.245.11.87:0 - "GET /containers/json HTTP/1.1" 404 Not Found
+Dec 22 12:17:48 localhost uvicorn[27210]: INFO:     3.143.33.63:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 12:18:38 localhost uvicorn[27210]: INFO:     3.143.33.63:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 12:19:35 localhost uvicorn[27210]: INFO:     204.76.203.219:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 12:22:35 localhost uvicorn[27210]: INFO:     65.49.1.52:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 12:23:40 localhost uvicorn[27210]: INFO:     65.49.1.52:0 - "GET /webui/ HTTP/1.1" 404 Not Found
+Dec 22 12:24:53 localhost uvicorn[27210]: INFO:     65.49.1.59:0 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+Dec 22 12:25:21 localhost uvicorn[27210]: INFO:     65.49.1.52:0 - "GET /geoserver/web/ HTTP/1.1" 404 Not Found
+Dec 22 12:38:35 localhost uvicorn[27210]: INFO:     78.153.140.179:0 - "GET /.env HTTP/1.1" 404 Not Found
+Dec 22 12:38:36 localhost uvicorn[27210]: INFO:     78.153.140.179:0 - "GET /api/.env HTTP/1.1" 404 Not Found
+Dec 22 12:38:36 localhost uvicorn[27210]: INFO:     78.153.140.179:0 - "GET /backend/.env HTTP/1.1" 404 Not Found
+Dec 22 12:38:37 localhost uvicorn[27210]: INFO:     78.153.140.179:0 - "GET /admin/.env HTTP/1.1" 404 Not Found
+Dec 22 12:45:16 localhost uvicorn[27210]: INFO:     193.142.147.209:0 - "POST / HTTP/1.1" 405 Method Not Allowed
+Dec 22 12:49:51 localhost uvicorn[27210]: INFO:     40.124.175.155:0 - "GET /developmentserver/metadatauploader HTTP/1.1" 404 Not Found
+Dec 22 13:09:16 localhost uvicorn[27210]: INFO:     89.42.231.239:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 14:07:26 localhost uvicorn[27210]: INFO:     87.121.84.148:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 14:22:58 localhost systemd[1]: Stopping stream-copilot.service - Stream Co-Pilot API...
+Dec 22 14:22:58 localhost uvicorn[27210]: INFO:     Shutting down
+Dec 22 14:22:59 localhost uvicorn[27210]: INFO:     Waiting for application shutdown.
+Dec 22 14:22:59 localhost uvicorn[27210]: INFO:     Application shutdown complete.
+Dec 22 14:22:59 localhost uvicorn[27210]: INFO:     Finished server process [27210]
+Dec 22 14:22:59 localhost systemd[1]: stream-copilot.service: Deactivated successfully.
+Dec 22 14:22:59 localhost systemd[1]: Stopped stream-copilot.service - Stream Co-Pilot API.
+Dec 22 14:22:59 localhost systemd[1]: stream-copilot.service: Consumed 1min 11.907s CPU time, 35.7M memory peak.
+Dec 22 14:22:59 localhost systemd[1]: Started stream-copilot.service - Stream Co-Pilot API.
+Dec 22 14:22:59 localhost uvicorn[217735]: INFO:     Started server process [217735]
+Dec 22 14:22:59 localhost uvicorn[217735]: INFO:     Waiting for application startup.
+Dec 22 14:22:59 localhost uvicorn[217735]: INFO:     Application startup complete.
+Dec 22 14:22:59 localhost uvicorn[217735]: INFO:     Uvicorn running on http://0.0.0.0:8811 (Press CTRL+C to quit)
+Dec 22 14:23:26 localhost uvicorn[217735]: INFO:     204.76.203.219:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 14:27:03 localhost uvicorn[217735]: INFO:     127.0.0.1:46898 - "GET / HTTP/1.1" 200 OK
+Dec 22 14:29:30 localhost systemd[1]: Stopping stream-copilot.service - Stream Co-Pilot API...
+Dec 22 14:29:30 localhost uvicorn[217735]: INFO:     Shutting down
+Dec 22 14:29:31 localhost uvicorn[217735]: INFO:     Waiting for application shutdown.
+Dec 22 14:29:31 localhost uvicorn[217735]: INFO:     Application shutdown complete.
+Dec 22 14:29:31 localhost uvicorn[217735]: INFO:     Finished server process [217735]
+Dec 22 14:29:31 localhost systemd[1]: stream-copilot.service: Deactivated successfully.
+Dec 22 14:29:31 localhost systemd[1]: Stopped stream-copilot.service - Stream Co-Pilot API.
+Dec 22 14:29:31 localhost systemd[1]: stream-copilot.service: Consumed 1.484s CPU time, 40.8M memory peak.
+Dec 22 14:29:31 localhost systemd[1]: Started stream-copilot.service - Stream Co-Pilot API.
+Dec 22 14:29:31 localhost uvicorn[218772]: INFO:     Started server process [218772]
+Dec 22 14:29:31 localhost uvicorn[218772]: INFO:     Waiting for application startup.
+Dec 22 14:29:31 localhost uvicorn[218772]: INFO:     Application startup complete.
+Dec 22 14:29:31 localhost uvicorn[218772]: INFO:     Uvicorn running on http://0.0.0.0:8811 (Press CTRL+C to quit)
+Dec 22 14:29:37 localhost systemd[1]: Stopping stream-copilot.service - Stream Co-Pilot API...
+Dec 22 14:29:37 localhost uvicorn[218772]: INFO:     Shutting down
+Dec 22 14:29:37 localhost uvicorn[218772]: INFO:     Waiting for application shutdown.
+Dec 22 14:29:37 localhost uvicorn[218772]: INFO:     Application shutdown complete.
+Dec 22 14:29:37 localhost uvicorn[218772]: INFO:     Finished server process [218772]
+Dec 22 14:29:37 localhost systemd[1]: stream-copilot.service: Deactivated successfully.
+Dec 22 14:29:37 localhost systemd[1]: Stopped stream-copilot.service - Stream Co-Pilot API.
+Dec 22 14:29:37 localhost systemd[1]: Started stream-copilot.service - Stream Co-Pilot API.
+Dec 22 14:29:38 localhost uvicorn[218797]: INFO:     Started server process [218797]
+Dec 22 14:29:38 localhost uvicorn[218797]: INFO:     Waiting for application startup.
+Dec 22 14:29:38 localhost uvicorn[218797]: INFO:     Application startup complete.
+Dec 22 14:29:38 localhost uvicorn[218797]: INFO:     Uvicorn running on http://0.0.0.0:8811 (Press CTRL+C to quit)
+Dec 22 14:31:41 localhost uvicorn[218797]: INFO:     27.185.58.142:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 14:32:36 localhost uvicorn[218797]: INFO:     35.233.24.129:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 14:40:27 localhost uvicorn[218797]: INFO:     47.231.165.111:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 14:42:27 localhost uvicorn[218797]: INFO:     127.0.0.1:0 - "HEAD / HTTP/1.1" 200 OK
+Dec 22 14:42:27 localhost uvicorn[218797]: INFO:     127.0.0.1:42296 - "HEAD / HTTP/1.1" 200 OK
+Dec 22 14:42:27 localhost uvicorn[218797]: INFO:     127.0.0.1:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 14:42:27 localhost uvicorn[218797]: INFO:     127.0.0.1:42318 - "GET / HTTP/1.1" 200 OK
+Dec 22 14:42:38 localhost systemd[1]: Stopping stream-copilot.service - Stream Co-Pilot API...
+Dec 22 14:42:38 localhost uvicorn[218797]: INFO:     Shutting down
+Dec 22 14:42:38 localhost uvicorn[218797]: INFO:     Waiting for application shutdown.
+Dec 22 14:42:38 localhost uvicorn[218797]: INFO:     Application shutdown complete.
+Dec 22 14:42:38 localhost uvicorn[218797]: INFO:     Finished server process [218797]
+Dec 22 14:42:38 localhost systemd[1]: stream-copilot.service: Deactivated successfully.
+Dec 22 14:42:38 localhost systemd[1]: Stopped stream-copilot.service - Stream Co-Pilot API.
+Dec 22 14:42:38 localhost systemd[1]: stream-copilot.service: Consumed 2.424s CPU time, 35.1M memory peak.
+Dec 22 14:42:38 localhost systemd[1]: Started stream-copilot.service - Stream Co-Pilot API.
+Dec 22 14:42:38 localhost uvicorn[219230]: INFO:     Started server process [219230]
+Dec 22 14:42:38 localhost uvicorn[219230]: INFO:     Waiting for application startup.
+Dec 22 14:42:38 localhost uvicorn[219230]: INFO:     Application startup complete.
+Dec 22 14:42:38 localhost uvicorn[219230]: INFO:     Uvicorn running on http://0.0.0.0:8811 (Press CTRL+C to quit)
+Dec 22 14:42:52 localhost uvicorn[219230]: INFO:     47.231.165.111:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 14:43:51 localhost uvicorn[219230]: INFO:     127.0.0.1:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 14:43:51 localhost uvicorn[219230]: INFO:     127.0.0.1:54752 - "GET / HTTP/1.1" 200 OK
+Dec 22 14:44:02 localhost uvicorn[219230]: INFO:     127.0.0.1:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 14:44:17 localhost uvicorn[219230]: INFO:     47.231.165.111:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 14:44:38 localhost uvicorn[219230]: INFO:     47.231.165.111:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 14:47:06 localhost uvicorn[219230]: INFO:     127.0.0.1:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 14:47:06 localhost uvicorn[219230]: INFO:     127.0.0.1:0 - "GET / HTTP/1.1" 200 OK
+Dec 22 14:47:06 localhost uvicorn[219230]: INFO:     127.0.0.1:36010 - "GET / HTTP/1.1" 200 OK
+Dec 22 14:47:06 localhost uvicorn[219230]: INFO:     127.0.0.1:36026 - "GET / HTTP/1.1" 200 OK
+Dec 22 14:47:06 localhost uvicorn[219230]: INFO:     127.0.0.1:0 - "GET /api/state HTTP/1.1" 200 OK
+Dec 22 14:47:06 localhost uvicorn[219230]: INFO:     127.0.0.1:36050 - "GET /api/state HTTP/1.1" 200 OK

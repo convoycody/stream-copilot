@@ -1,0 +1,20 @@
+total 80K
+drwxr-xr-x   8 root root 4.0K Dec 22 03:11 .
+drwxr-xr-x 117 root root 4.0K Dec 22 06:53 ..
+drwxr-xr-x   2 root root 4.0K Dec 22 14:44 conf.d
+-rw-r--r--   1 root root 1.1K Sep  8 18:06 fastcgi.conf
+-rw-r--r--   1 root root 1.1K Sep  8 18:06 fastcgi_params
+-rw-r--r--   1 root root 2.8K Sep  8 18:06 koi-utf
+-rw-r--r--   1 root root 2.2K Sep  8 18:06 koi-win
+-rw-r--r--   1 root root 5.4K Sep  8 18:06 mime.types
+drwxr-xr-x   2 root root 4.0K Sep 10 09:18 modules-available
+drwxr-xr-x   2 root root 4.0K Dec 22 02:42 modules-enabled
+-rw-r--r--   1 root root 1.6K Dec 22 03:12 nginx.conf
+-rw-r--r--   1 root root  180 Sep  8 18:06 proxy_params
+-rw-r--r--   1 root root  264 Dec 22 03:29 rtmp.conf
+-rw-r--r--   1 root root  636 Sep  8 18:06 scgi_params
+drwxr-xr-x   2 root root 4.0K Dec 22 02:29 sites-available
+drwxr-xr-x   2 root root 4.0K Dec 22 04:58 sites-enabled
+drwxr-xr-x   2 root root 4.0K Dec 22 04:50 snippets
+-rw-r--r--   1 root root  664 Sep  8 18:06 uwsgi_params
+-rw-r--r--   1 root root 3.0K Sep  8 18:06 win-utf

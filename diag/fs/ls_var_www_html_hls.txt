@@ -1,0 +1,9 @@
+total 12M
+drwxr-xr-x 2 www-data www-data 4.0K Dec 22 14:47 .
+drwxr-xr-x 3 root     root     4.0K Dec 22 02:42 ..
+-rw-r--r-- 1 www-data www-data 2.5M Dec 22 14:46 preview-72.ts
+-rw-r--r-- 1 www-data www-data 2.5M Dec 22 14:47 preview-73.ts
+-rw-r--r-- 1 www-data www-data 2.5M Dec 22 14:47 preview-74.ts
+-rw-r--r-- 1 www-data www-data 2.5M Dec 22 14:47 preview-75.ts
+-rw-r--r-- 1 www-data www-data 2.1M Dec 22 14:47 preview-76.ts
+-rw-r--r-- 1 www-data www-data  161 Dec 22 14:47 preview.m3u8

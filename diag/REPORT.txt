@@ -1,0 +1,78 @@
+==================== STREAM-COPILOT DIAG 20251222T144706Z ====================
+HOST: localhost  KERNEL: Linux localhost 6.17.0-5-generic #5-Ubuntu SMP PREEMPT_DYNAMIC Mon Sep 22 10:00:33 UTC 2025 x86_64 GNU/Linux
+UPTIME: up 13 hours, 25 minutes
+DATE: Mon Dec 22 14:47:06 UTC 2025
+
+== A) GIT + TREE (top-level) ==
+
+total 64K
+drwxr-xr-x 14 root root 4.0K Dec 22 14:47 .
+drwx------  7 root root 4.0K Dec 22 07:33 ..
+-rw-r--r--  1 root root  420 Dec 22 03:37 .env
+-rw-r--r--  1 root root  270 Dec 22 01:22 .env.example
+drwxr-xr-x  8 root root 4.0K Dec 22 03:50 ai
+drwxr-xr-x  3 root root 4.0K Dec 22 14:29 api
+drwxr-xr-x  2 root root 4.0K Dec 22 01:22 brain
+drwxr-xr-x  4 root root 4.0K Dec 22 03:55 collector
+drwxr-xr-x  2 root root 4.0K Dec 22 01:22 core
+drwxr-xr-x  2 root root 4.0K Dec 22 14:47 data
+drwxr-xr-x  8 root root 4.0K Dec 22 14:47 diag
+drwxr-xr-x  2 root root 4.0K Dec 22 01:22 docs
+drwxr-xr-x  2 root root 4.0K Dec 22 01:22 ops
+drwxr-xr-x  2 root root 4.0K Dec 22 02:16 outputs
+drwxr-xr-x  2 root root 4.0K Dec 22 02:11 ui
+drwxr-xr-x  6 root root 4.0K Dec 22 03:54 venv
+
+Wrote: /root/stream-copilot/diag/fs/tree_maxdepth3.txt
+
+== B) PORTS / LISTENERS / FIREWALL ==
+Wrote: /root/stream-copilot/diag/net/*
+
+== C) SYSTEMD UNITS (copilot/nginx) ==
+  nginx.service                               loaded active running A high performance web server and a reverse proxy server
+  stream-copilot-transcribe.service           loaded active running Stream Co-Pilot HLS Transcription Worker
+  stream-copilot.service                      loaded active running Stream Co-Pilot API
+
+Wrote: /root/stream-copilot/diag/systemd/status.txt
+
+== D) SYSTEMD UNIT FILES ==
+Saved /etc/systemd/system/stream-copilot.service
+Saved /etc/systemd/system/stream-copilot-transcribe.service
+Wrote: /root/stream-copilot/diag/systemd/*
+
+== E) NGINX ACTIVE CONFIG (FULL -T) ==
+Wrote: /root/stream-copilot/diag/nginx/nginx-T.txt
+
+== F) NGINX SITE FILES ==
+Wrote: /root/stream-copilot/diag/nginx/*
+
+== G) WEB ROOT + HLS DIR CONTENTS/PERMS ==
+Wrote: /root/stream-copilot/diag/fs/*
+
+== H) CURL CHECKS (80/8811 + HLS endpoints) ==
+Wrote: /root/stream-copilot/diag/app/curl_checks.txt
+
+== I) APP PROCESS + WORKDIR + ENV HINTS ==
+Wrote: /root/stream-copilot/diag/app/*
+
+== J) PYTHON/VENV + IMPORT SANITY ==
+Wrote: /root/stream-copilot/diag/app/python_sanity.txt
+
+== K) APP FILE SNAPSHOT (key files) ==
+Saved api/app.py
+Saved api/ui_home.py
+Saved api/__init__.py
+Saved collector/transcribe_hls.py
+
+== L) JOURNAL LOGS (nginx + copilot + transcribe) ==
+Wrote: /root/stream-copilot/diag/logs/*
+
+== M) TRANSCRIPT + HLS STATE ==
+Wrote: /root/stream-copilot/diag/app/transcript.json (if present)
+
+== N) REDACT-ISH (optional) ==
+Scrubbed env_all.txt basic secrets pattern.
+
+== O) PACKAGE IT ==
+DONE. Bundle: /root/stream-copilot/diag-20251222T144706Z.tgz
+Report: /root/stream-copilot/diag/REPORT.txt

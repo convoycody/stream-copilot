@@ -1,0 +1,8 @@
+total 28K
+drwxr-xr-x 2 root root 4.0K Dec 22 14:44 .
+drwxr-xr-x 8 root root 4.0K Dec 22 03:11 ..
+-rw-r--r-- 1 root root  847 Dec 22 04:59 stream-copilot-nocache.conf.DISABLED.20251222T051240Z
+-rw-r--r-- 1 root root  779 Dec 22 04:57 stream-copilot-nocache.conf.bak.20251222T045758Z
+-rw-r--r-- 1 root root  832 Dec 22 04:59 stream-copilot-nocache.conf.bak.20251222T045959Z
+-rw-r--r-- 1 root root  690 Dec 22 14:44 stream-copilot.conf
+-rw-r--r-- 1 root root  642 Dec 22 14:44 stream-copilot.conf.bak.20251222T144402Z

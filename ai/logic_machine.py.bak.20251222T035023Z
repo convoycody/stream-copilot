@@ -1,0 +1,183 @@
+from __future__ import annotations
+import time
+from typing import Dict, List
+from ai.models import AIInputs, AIOutput, StreamState, HealthSignals, TopicPlan
+from ai.signals.chat_signals import analyze_chat
+from ai.signals.resource_signals import analyze_resources
+from ai.planners.topic_plan import build_topic_plan
+
+def _clamp01(x) -> float:
+    try:
+        x = float(x)
+    except Exception:
+        return 0.0
+    return max(0.0, min(1.0, x))
+
+def _phase_transition(state: StreamState, inputs: AIInputs, chat_momentum: float, q_count: int) -> StreamState:
+    now = inputs.now
+    started = bool(inputs.started)
+
+    if not started:
+        state.phase = "PRELIVE" if inputs.mode != "offline" else "OFFLINE"
+        state.entered_ts = state.entered_ts or now
+        return state
+
+    # started == True
+    if state.phase in ("OFFLINE","PRELIVE"):
+        state.phase = "LIVE"
+        state.entered_ts = now
+        return state
+
+    # if lots of questions -> QNA
+    if q_count >= 3 and chat_momentum > 0.4 and state.phase not in ("QNA","WRAP"):
+        state.phase = "QNA"
+        state.entered_ts = now
+        return state
+
+    # deep dive trigger: high momentum, few questions, or streamer mode
+    if state.phase == "LIVE" and chat_momentum > 0.55 and q_count == 0:
+        state.phase = "DEEP_DIVE"
+        state.entered_ts = now
+        return state
+
+    # wrap trigger: long live time (simple for now)
+    live_for = now - float(inputs.started or now)
+    if live_for > 60*55:  # ~55 minutes
+        state.phase = "WRAP"
+        state.entered_ts = now
+        return state
+
+    return state
+
+def _health(inputs: AIInputs, chat_count: int, res_count: int) -> HealthSignals:
+    scene = (inputs.obs_scene or "Unknown").strip().lower()
+    obs_ok = (scene != "unknown") and ("disconnected" not in scene)
+
+    stream_started = bool(inputs.started)
+    chat_ok = chat_count > 0
+    resources_ok = res_count > 0
+
+    alerts: List[str] = []
+    if not obs_ok:
+        alerts.append("OBS not detected: confirm obs-websocket is connected.")
+    if stream_started and not chat_ok:
+        alerts.append("No chat yet: ask a direct question to pull people in.")
+    if not resources_ok:
+        alerts.append("No resources loaded: add links/notes so AI can cite specifics.")
+    return HealthSignals(
+        obs_ok=obs_ok,
+        chat_ok=chat_ok,
+        resources_ok=resources_ok,
+        stream_started=stream_started,
+        alerts=alerts
+    )
+
+def compile_output(inputs: AIInputs, state: StreamState) -> AIOutput:
+    chat = analyze_chat(inputs)
+    res = analyze_resources(inputs, chat)
+    plan: TopicPlan = build_topic_plan(inputs)
+    health = _health(inputs, chat.msg_count, res.count)
+
+    # phase transitions
+    state = _phase_transition(state, inputs, chat.momentum_2m, chat.question_count)
+
+    scores = inputs.scores or {}
+    energy = _clamp01(scores.get("energy", 0.5))
+    clarity = _clamp01(scores.get("clarity", 0.5))
+    engagement = _clamp01(scores.get("engagement", 0.5))
+    pace = _clamp01(scores.get("pace", 0.5))
+
+    alerts = []
+    alerts.extend(health.alerts)
+    if clarity < 0.45:
+        alerts.append("Clarity low: say the goal in ONE sentence, then do the next step.")
+    if engagement < 0.45:
+        alerts.append("Engagement low: ask chat A/B + wait 10 seconds before continuing.")
+    if pace < 0.40:
+        alerts.append("Pace slow: narrate actions; keep each step under 30 seconds.")
+    if energy < 0.40:
+        alerts.append("Energy low: quick reset - sip, smile, re-intro in 8 seconds.")
+
+    # summary
+    if chat.msg_count == 0:
+        summary = "No chat yet."
+    else:
+        th = ", ".join(chat.themes[:4]) if chat.themes else "—"
+        summary = f"{chat.msg_count} msgs • {chat.question_count} questions • Momentum {int(chat.momentum_2m*100)}% • Themes: {th}"
+
+    # talking points (phase-aware, topic+chat+resources)
+    tps: List[str] = []
+    tps.append(f"Goal: “We’re building {inputs.topic} and getting it working live.”")
+    if res.relevant_now:
+        tps.append(f"Pull resource: “Let’s reference: { (res.relevant_now[0].get('title') or res.relevant_now[0].get('text') or 'Resource 1')[:70] }”")
+    if chat.top_questions:
+        tps.append(f"Answer next: “{chat.top_questions[0][:110]}”")
+    else:
+        tps.append("Ask: “Do you want quick version or deep dive?”")
+    if state.phase == "PRELIVE":
+        tps.append("Prelive: confirm preview + audio + scene layout is readable.")
+        tps.append("Prompt: “Say hi + where you’re watching from.”")
+    elif state.phase == "LIVE":
+        tps.append("Narrate: what changed in the last 60 seconds and what changes next.")
+        tps.append("Ask A/B: “Should we focus on UI polish or backend wiring?”")
+    elif state.phase == "DEEP_DIVE":
+        tps.append("Deep dive: explain the architecture in 3 bullets, then implement 1 change.")
+        tps.append("Checkpoint: “Pause me if you want examples.”")
+    elif state.phase == "QNA":
+        tps.append("Q&A: answer 2 quick, 1 deep. Then back to build.")
+        tps.append("Confirm: “Did that answer it?”")
+    elif state.phase == "WRAP":
+        tps.append("Wrap: recap what shipped + what’s next stream.")
+        tps.append("CTA: follow/subscribe + drop feature requests.")
+
+    # cues (15-30s actions)
+    cues: List[str] = []
+    if not inputs.started:
+        cues.append("Click Start in the dashboard (or start streaming) so phase flips to LIVE.")
+    cues.append("Say the next sentence out loud BEFORE you code it.")
+    if chat.msg_count == 0:
+        cues.append("Ask one direct question, then wait 8 seconds in silence.")
+    if res.relevant_now:
+        cues.append("Open the top resource and quote 1 line / requirement, then implement it.")
+
+    # next question (single)
+    if chat.top_questions:
+        next_q = chat.top_questions[0]
+    elif chat.themes:
+        next_q = f"Do you want the quick version or deep dive on {chat.themes[0]}?"
+    else:
+        next_q = "Do you want the quick version or the deep dive?"
+
+    # segments (phase mapped to plan)
+    segments = plan.segments
+    # minimal “active segment” tag
+    active_name = {
+        "PRELIVE": "Set the goal",
+        "LIVE": "Build next piece",
+        "DEEP_DIVE": "Build next piece",
+        "QNA": "Q&A",
+        "WRAP": "Wrap",
+        "OFFLINE": "Set the goal",
+    }.get(state.phase, "Build next piece")
+
+    for seg in segments:
+        seg["active"] = (seg["name"] == active_name)
+
+    return AIOutput(
+        phase=state.phase,
+        summary=summary,
+        talking_points=tps[:10],
+        next_question=next_q,
+        alerts=alerts[:8],
+        segments=segments,
+        cues=cues[:8],
+        resource_refs=res.relevant_now[:6],
+        updated=inputs.now,
+        provider="logic_v1",
+        debug={
+            "scores": {"energy":energy,"clarity":clarity,"engagement":engagement,"pace":pace},
+            "chat": {"themes":chat.themes,"momentum_2m":chat.momentum_2m,"top_q":chat.top_questions},
+            "resources": {"top_terms":res.top_terms[:8], "relevant_count":len(res.relevant_now)},
+            "obs_scene": inputs.obs_scene,
+        }
+    )

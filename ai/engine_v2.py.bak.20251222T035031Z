@@ -1,0 +1,57 @@
+from __future__ import annotations
+import time
+from ai.models import AIInputs, StreamState
+from ai.logic_machine import compile_output
+
+class StreamLogicEngine:
+    def __init__(self, state: dict):
+        self.STATE = state
+        self.stream_state = StreamState(phase="OFFLINE", entered_ts=time.time())
+        self.STATE.setdefault("recommendations", {})
+        self.STATE.setdefault("_ai", {})
+        self.STATE["_ai"].setdefault("enabled", True)
+        self.STATE["_ai"].setdefault("interval_sec", 2.0)
+        self.STATE["_ai"].setdefault("last_error", None)
+
+    def build_inputs(self) -> AIInputs:
+        st = self.STATE
+        now = time.time()
+        stream = st.get("stream") or {}
+        obs = st.get("obs") or {}
+        chat = st.get("chat") or {}
+        scores = st.get("scores") or {}
+        resources = st.get("resources") or []
+
+        return AIInputs(
+            now=now,
+            topic=str(stream.get("topic") or "Untitled Stream"),
+            mode=str(stream.get("mode") or "default"),
+            started=stream.get("started"),
+            obs_scene=str(obs.get("scene") or "Unknown"),
+            scores=dict(scores) if isinstance(scores, dict) else {},
+            chat_last=list(chat.get("last_20") or []),
+            resources=list(resources) if isinstance(resources, list) else [],
+        )
+
+    def run_once(self) -> dict:
+        inputs = self.build_inputs()
+        out = compile_output(inputs, self.stream_state)
+        self.stream_state.phase = out.phase
+
+        rec = self.STATE.setdefault("recommendations", {})
+        rec.update({
+            "provider": out.provider,
+            "phase": out.phase,
+            "summary": out.summary,
+            "talking_points": out.talking_points,
+            "next_question": out.next_question,
+            "alerts": out.alerts,
+            "segments": out.segments,
+            "cues": out.cues,
+            "resource_refs": out.resource_refs,
+            "updated": out.updated,
+            "_debug": out.debug,
+        })
+
+        self.STATE["updated"] = time.time()
+        return rec
