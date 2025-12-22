@@ -25,3 +25,6 @@ PROJECT_REPORT.md
 .DS_Store
 .vscode/
 .idea/
+
+# runtime data
+/data/*.json
