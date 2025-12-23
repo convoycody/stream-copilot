@@ -224,6 +224,23 @@ register_extensions(app, STATE)
 # ----------------------------
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
+    # SAFE MODE: if ?safe=1, return minimal HTML without JS
+    try:
+        if str(request.query_params.get("safe", "")).lower() in ("1","true","yes","on"):
+            return HTMLResponse(
+                "<!doctype html><html><head><meta charset='utf-8'/>"
+                "<meta name='viewport' content='width=device-width,initial-scale=1'/>"
+                "<title>Stream Co-Pilot (Safe)</title></head>"
+                "<body style='font-family:system-ui;padding:18px'>"
+                "<h1>Stream Co-Pilot</h1>"
+                "<p><b>Safe mode</b> is on. (No scripts, no polling.)</p>"
+                "<p>Try the full UI at <a href='/'>/</a> when ready.</p>"
+                "</body></html>",
+                status_code=200,
+            )
+    except Exception:
+        pass
+
     # ui_home.py should render safely on desktop
     return HTMLResponse(render_home())
 
