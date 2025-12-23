@@ -24,3 +24,8 @@ env/
 
 # Backups created during patching
 *.bak.*
+
+# local runtime files
+/data/
+__pycache__/
+*.pyc
