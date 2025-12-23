@@ -197,9 +197,18 @@ border-bottom:2px solid rgba(0,0,0,.25)">
 
 
   async function fetchTranscript(){
-    const r = await fetch("/api/transcript", { cache: "no-store" });
-    if(!r.ok) throw new Error("HTTP "+r.status);
-    return await r.json();
+    try{
+      const r = await fetch("/api/transcript", { cache: "no-store" });
+      if(!r.ok){
+        if(r.status === 404){
+          return { ok: false, status: "Transcript unavailable", lines: [] };
+        }
+        throw new Error("HTTP "+r.status);
+      }
+      return await r.json();
+    }catch(e){
+      return { ok: false, status: "Transcript unavailable", lines: [] };
+    }
   }
 
   function txLine(item){
@@ -231,6 +240,7 @@ border-bottom:2px solid rgba(0,0,0,.25)">
     const oc = (rec.overall_confidence ?? null);
     const us = (rec.usefulness ?? null);
     const cov = rec.coverage || {};
+    const liveHint = rec.live_hint || {};
     const covTxt = Object.keys(cov).length ? ("cov: " + Object.entries(cov).map(([k,v])=>`${k} ${fmtPct(v)}%`).join(" • ")) : "";
     el("aiMeta").textContent = (oc==null && us==null) ? "—" : `Confidence ${fmtPct(oc)}% • Usefulness ${fmtPct(us)}% ${covTxt ? "• " + covTxt : ""}`;
     const chat = (state.chat && state.chat.last_20) ? state.chat.last_20 : [];
@@ -255,7 +265,9 @@ border-bottom:2px solid rgba(0,0,0,.25)">
       ? tps.map(recLine).join("")
       : `<div class="li muted">No recommendations yet.</div>`;
 
-    el("nextQ").textContent = (rec.next_question && rec.next_question.text) ? rec.next_question.text : (rec.next_question ?? "—");
+    const liveHintText = (liveHint.text || "").trim();
+    const liveHintConf = Math.round((liveHint.confidence ?? 0) * 100);
+    el("nextQ").textContent = liveHintText ? `${liveHintText} (${liveHintConf}%)` : "—";
     el("summary").textContent = rec.summary ?? "—";
 
     el("chatMeta").textContent = chat.length ? `Last ${chat.length} messages` : "No chat yet.";
@@ -337,7 +349,13 @@ border-bottom:2px solid rgba(0,0,0,.25)">
     }
   }
 
-async function tick(){
+  let tickTimer = null;
+  let tickRunning = false;
+  const tickIntervalMs = 1200;
+
+  async function tick(){
+    if(tickRunning) return;
+    tickRunning = true;
     try{
       const st = await fetchState();
       const tx = await fetchTranscript();
@@ -348,6 +366,8 @@ async function tick(){
     }catch(e){
       setStatus(false);
       el("topline").textContent = "Disconnected…";
+    }finally{
+      tickRunning = false;
     }
   }
 
@@ -375,8 +395,29 @@ async function tick(){
     }
   }
 
+  function scheduleTick(){
+    if(tickTimer) return;
+    if(document.hidden) return;
+    tickTimer = setInterval(() => { tick(); }, tickIntervalMs);
+  }
+
+  function stopTick(){
+    if(!tickTimer) return;
+    clearInterval(tickTimer);
+    tickTimer = null;
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if(document.hidden){
+      stopTick();
+    }else{
+      tick();
+      scheduleTick();
+    }
+  });
+
   tick();
-  setInterval(tick, 1200);
+  scheduleTick();
   // --- keep HLS preview near the live edge (iPad Safari drifts) ---
   function snapToLiveEdge(){
     const v = el("preview");

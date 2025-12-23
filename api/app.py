@@ -35,6 +35,7 @@ STATE = {
         ],
         "next_question": "Do you want the quick version or the deep dive?",
         "summary": "No chat yet.",
+        "live_hint": {"text": "Share what you’re building, then the next step.", "confidence": 0.62},
     },
     "updated": None,
 }
@@ -118,10 +119,24 @@ def compute_scores(state: dict) -> None:
     }
 
 
+def ensure_recommendations(state: dict) -> None:
+    state.setdefault("recommendations", {})
+    rec = state["recommendations"]
+    rec.setdefault("talking_points", [])
+    rec.setdefault("next_question", "—")
+    rec.setdefault("summary", "—")
+    rec.setdefault("live_hint", {"text": "—", "confidence": 0.0})
+
+    if not rec.get("live_hint") or not rec["live_hint"].get("text"):
+        fallback = (rec.get("talking_points") or ["—"])[0]
+        rec["live_hint"] = {"text": fallback, "confidence": 0.45}
+
+
 async def score_worker() -> None:
     while True:
         try:
             compute_scores(STATE)
+            ensure_recommendations(STATE)
             STATE["updated"] = time.time()
         except Exception:
             pass
@@ -144,6 +159,7 @@ async def startup_event():
 @app.get("/api/state")
 def get_state():
     compute_scores(STATE)
+    ensure_recommendations(STATE)
     STATE["updated"] = time.time()
     return STATE
 
@@ -160,6 +176,7 @@ def post_chat(msg: ChatMsg):
 
     STATE.setdefault("recommendations", {})
     STATE["recommendations"]["summary"] = f"Latest: {m['user']}: {m['text'][:80]}"
+    ensure_recommendations(STATE)
     STATE["updated"] = time.time()
     compute_scores(STATE)
     return {"ok": True}
@@ -179,6 +196,7 @@ def set_stream_config(cfg: StreamConfig):
         pass
 
     STATE["updated"] = time.time()
+    ensure_recommendations(STATE)
     compute_scores(STATE)
     return {"ok": True, "stream": STATE["stream"]}
 
@@ -209,8 +227,14 @@ def agent_push_obs(payload: AgentObsPayload, request: Request):
         STATE["obs"]["sources"] = payload.sources
 
     STATE["updated"] = time.time()
+    ensure_recommendations(STATE)
     compute_scores(STATE)
     return {"ok": True, "obs": STATE["obs"]}
+
+
+@app.get("/api/transcript")
+def get_transcript():
+    return {"ok": False, "status": "Transcript unavailable", "lines": []}
 
 
 # ----------------------------
