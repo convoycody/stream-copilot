@@ -197,9 +197,18 @@ border-bottom:2px solid rgba(0,0,0,.25)">
 
 
   async function fetchTranscript(){
-    const r = await fetch("/api/transcript", { cache: "no-store" });
-    if(!r.ok) throw new Error("HTTP "+r.status);
-    return await r.json();
+    try{
+      const r = await fetch("/api/transcript", { cache: "no-store" });
+      if(!r.ok){
+        if(r.status === 404){
+          return { ok: false, status: "Transcript unavailable", lines: [] };
+        }
+        throw new Error("HTTP "+r.status);
+      }
+      return await r.json();
+    }catch(e){
+      return { ok: false, status: "Transcript unavailable", lines: [] };
+    }
   }
 
   function txLine(item){
