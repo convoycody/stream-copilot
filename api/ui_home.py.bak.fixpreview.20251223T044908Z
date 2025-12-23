@@ -67,7 +67,130 @@ def render_home() -> str:
 
     #startPreviewBtn{display:none !important;}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest">
+  // === AUTOSTART VIA FIRST USER GESTURE (keeps the working click path) ===
+  (function(){
+    let fired = false;
+    function go(){
+      if(fired) return;
+      fired = true;
+      try{
+        if(typeof startPreviewClickCompat === "function") startPreviewClickCompat();
+      }catch(_){}
+    }
+    window.addEventListener("pointerdown", go, { once:true, passive:true });
+    window.addEventListener("touchstart", go, { once:true, passive:true });
+  })();
+
+  // === Preview autostart (no button, gesture fallback) ===
+  (function(){
+    const HLS_PATH = "/hls/preview.m3u8";
+
+    function showTap(msg){
+      const t = document.getElementById("tapToStart");
+      if(!t) return;
+      t.textContent = msg || "Tap to start preview";
+      t.style.display = "inline-flex";
+    }
+    function hideTap(){
+      const t = document.getElementById("tapToStart");
+      if(!t) return;
+      t.style.display = "none";
+    }
+
+    async function tryPlay(){
+      const v = document.getElementById("preview");
+      if(!v) return false;
+      try{
+        v.muted = true;         // required for best autoplay odds
+        v.playsInline = true;
+        const pr = v.play();
+        if(pr && pr.then) await pr;
+        hideTap();
+        return true;
+      }catch(_){
+        showTap("Tap to start preview");
+        return false;
+      }
+    }
+
+    // If startPreviewClickCompat exists, use it (this is your known-good "button" path)
+    async function startPreview(){
+      try{
+        if(typeof startPreviewClickCompat === "function"){
+          startPreviewClickCompat();
+        }else{
+          // fallback: bind + play
+          if(typeof bindPreviewPlayer === "function") bindPreviewPlayer(true);
+          await tryPlay();
+        }
+      }catch(_){
+        // still try binding+play
+        try{ if(typeof bindPreviewPlayer === "function") bindPreviewPlayer(true); }catch(__){}
+        await tryPlay();
+      }
+    }
+
+    function autoBind(){
+      const v = document.getElementById("preview");
+      if(!v) return;
+      // Always bind the source immediately (so it "loads" even if it can't autoplay)
+      try{
+        if(typeof bindPreviewPlayer === "function") bindPreviewPlayer(true);
+      }catch(_){}
+
+      // Attempt autoplay (works on some browsers; iOS often blocks until gesture)
+      tryPlay();
+    }
+
+    // Arm first-gesture start anywhere on the page
+    let armed = false;
+    function armGesture(){
+      if(armed) return;
+      armed = true;
+
+      const go = ()=>{
+        startPreview();
+      };
+
+      window.addEventListener("pointerdown", go, { once:true, passive:true });
+      window.addEventListener("touchstart", go, { once:true, passive:true });
+      window.addEventListener("keydown", go, { once:true, passive:true });
+    }
+
+    function wirePlaybackEvents(){
+      const v = document.getElementById("preview");
+      if(!v) return;
+      v.addEventListener("playing", hideTap, { passive:true });
+      v.addEventListener("pause", ()=>{ /* don't force show */ }, { passive:true });
+      v.addEventListener("error", ()=>{ showTap("Tap to retry preview"); }, { passive:true });
+    }
+
+    document.addEventListener("DOMContentLoaded", ()=>{
+      // Set a helpful initial message if autoplay gets blocked
+      showTap("Loading preview…");
+      wirePlaybackEvents();
+      autoBind();
+      armGesture();
+    });
+
+    if(document.readyState === "interactive" || document.readyState === "complete"){
+      try{
+        showTap("Loading preview…");
+        wirePlaybackEvents();
+        autoBind();
+        armGesture();
+      }catch(_){}
+    }
+
+    document.addEventListener("visibilitychange", ()=>{
+      if(!document.hidden){
+        setTimeout(()=>{ try{ autoBind(); }catch(_){} }, 150);
+      }
+    });
+  })();
+
+</script>
 </head>
 <body>
 <div class="top">
@@ -411,7 +534,7 @@ def render_home() -> str:
   }
   setInterval(()=>{ try{ const v=el('preview'); if(v && v.currentSrc && v.readyState>=2) snapToLiveEdge(); }catch(e){} }, 750);
 
-    // === Preview (single path, click-driven) ===
+  // === Preview (single path, click-driven) ===
   // Works on Safari native HLS, and uses hls.js on others.
   let __hls = null;
 
@@ -421,10 +544,9 @@ def render_home() -> str:
     const dbg = document.getElementById("previewDbg");
     if(!v || !meta) return;
 
-    // cache-bust playlist so Safari doesn't cling to stale m3u8
     const hlsUrl = `${location.protocol}//${location.hostname}/hls/preview.m3u8?v=${Date.now()}`;
 
-    // One-time error hook
+    // One-time-ish event wiring
     if(v.dataset.errBound !== "1"){
       v.addEventListener("error", ()=>{
         try{
@@ -442,32 +564,29 @@ def render_home() -> str:
       if(dbg) dbg.textContent = `DBG: nativeHLS=${native||'no'} hlsjs=${hasHls?'yes':'no'} url=${hlsUrl}`;
     }catch(_){}
 
-    // reset old hls.js
+    // Reset old hls.js instance
     try{ if(__hls){ __hls.destroy(); __hls=null; } }catch(_){}
 
-    // common attrs
+    // Always set common attributes
     v.playsInline = true;
     v.muted = true;
-    v.autoplay = true;
-    v.setAttribute("muted","");
-    v.setAttribute("playsinline","");
-    v.setAttribute("autoplay","");
 
+    // If already bound and not forcing, do nothing
     if(v.dataset.bound === "1" && !force) return;
 
-    // iOS/Safari native HLS
+    // Safari / iOS native HLS
     if(v.canPlayType && v.canPlayType("application/vnd.apple.mpegurl")){
       v.src = hlsUrl;
       v.load();
       v.dataset.bound = "1";
-      meta.textContent = "Preview: native HLS (starting…)";
+      meta.textContent = "Preview: native HLS (tap Play).";
       return;
     }
 
-    // others: hls.js
+    // Desktop browsers: hls.js
     if(window.Hls && window.Hls.isSupported()){
       __hls = new window.Hls({
-        lowLatencyMode: false,
+        lowLatencyMode: false,          // nginx-rtmp is not LL-HLS
         liveSyncDurationCount: 3,
         enableWorker: true
       });
@@ -476,7 +595,7 @@ def render_home() -> str:
 
       __hls.on(window.Hls.Events.MANIFEST_PARSED, ()=>{
         v.dataset.bound = "1";
-        meta.textContent = "Preview: hls.js attached (starting…)";
+        meta.textContent = "Preview: hls.js attached (tap Play).";
       });
 
       __hls.on(window.Hls.Events.ERROR, (evt, data)=>{
@@ -491,7 +610,6 @@ def render_home() -> str:
   }
 
   function startPreviewClickCompat(){
-    // keep the working path for gesture-start
     bindPreviewPlayer(true);
     const v = document.getElementById("preview");
     if(!v) return;
@@ -499,78 +617,49 @@ def render_home() -> str:
       const pr = v.play();
       if(pr && pr.catch) pr.catch(()=>{});
     }catch(_){}
-  }
 
-  // === Auto-start behavior ===
-  // Try muted autoplay immediately. If blocked, first tap anywhere starts it.
-  (function(){
-    let tried = false;
 
-    function showTap(msg){
-      const t = document.getElementById("tapToStart");
-      if(!t) return;
-      t.textContent = msg || "Tap to start preview";
-      t.style.display = "inline-flex";
-    }
-    function hideTap(){
-      const t = document.getElementById("tapToStart");
-      if(!t) return;
-      t.style.display = "none";
-    }
+  // === Preview auto-start (no button) ===
+  // Try autoplay (muted). If blocked, first tap anywhere will start it.
+  let __autoPreviewTried = false;
 
-    async function tryPlay(){
+  function autoStartPreview(){
+    if(__autoPreviewTried) return;
+    __autoPreviewTried = true;
+    try{
+      bindPreviewPlayer(true);
       const v = document.getElementById("preview");
-      if(!v) return false;
-      try{
+      const meta = document.getElementById("previewMeta");
+      if(v){
         v.muted = true;
         v.playsInline = true;
+        v.autoplay = true;
+        v.setAttribute("muted","");
+        v.setAttribute("playsinline","");
+        v.setAttribute("autoplay","");
         const pr = v.play();
-        if(pr && pr.then) await pr;
-        hideTap();
-        return true;
-      }catch(_){
-        showTap("Tap to start preview");
-        return false;
-      }
-    }
-
-    function start(){
-      if(tried) return;
-      tried = true;
-      showTap("Loading preview…");
-      try{ bindPreviewPlayer(true); }catch(_){}
-      tryPlay();
-    }
-
-    function startGesture(){
-      // use the known-good “click” path (it binds + play)
-      try{ startPreviewClickCompat(); }catch(_){}
-      tryPlay();
-    }
-
-    document.addEventListener("DOMContentLoaded", ()=>{
-      start();
-      window.addEventListener("pointerdown", startGesture, { once:true, passive:true });
-      window.addEventListener("touchstart", startGesture, { once:true, passive:true });
-      window.addEventListener("keydown", startGesture, { once:true, passive:true });
-    });
-
-    // If DOM already ready
-    if(document.readyState === "interactive" || document.readyState === "complete"){
-      try{ start(); }catch(_){}
-    }
-
-    // hide hint when actually playing
-    try{
-      const v = document.getElementById("preview");
-      if(v){
-        v.addEventListener("playing", hideTap, { passive:true });
-        v.addEventListener("error", ()=>showTap("Tap to retry preview"), { passive:true });
+        if(pr && pr.catch){
+          pr.catch(()=>{ 
+            // Autoplay blocked. We'll retry on first user gesture.
+            if(meta) meta.textContent = "Preview ready. Tap anywhere to start.";
+          });
+        }
       }
     }catch(_){}
-  })();
+  }
 
-  // === Keep near live edge (Safari drifts) ===
+  // attempt once on load
+  document.addEventListener("DOMContentLoaded", ()=>{
+    setTimeout(autoStartPreview, 300);
+  });
+
+  // if autoplay is blocked, the first interaction anywhere starts it (no dedicated button)
+  window.addEventListener("pointerdown", ()=>{ try{ autoStartPreview(); }catch(_){} }, { once:true, passive:true });
+  window.addEventListener("touchstart", ()=>{ try{ autoStartPreview(); }catch(_){} }, { once:true, passive:true });
+
+  }
+
+  // Optional: keep near-live edge only AFTER playback is healthy
   function snapToLiveEdge(){
     const v = document.getElementById("preview");
     if(!v) return;
@@ -587,6 +676,9 @@ def render_home() -> str:
     }catch(_){}
   }
   setInterval(snapToLiveEdge, 1000);
+
+
+
 </script>
 </body>
 </html>"""

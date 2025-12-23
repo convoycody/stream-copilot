@@ -64,13 +64,30 @@ def render_home() -> str:
     }
 
 
-
-    #startPreviewBtn{display:none !important;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
-<div class="top">
+<!-- IOS_FALLBACK_BLOCK_V1 -->
+<div style="padding:14px 16px;background:#111827;color:#e5e7eb;font:14px/1.35 -apple-system,system-ui,Segoe UI,Roboto,sans-serif;border-bottom:1px solid rgba(255,255,255,.12)"><b>Stream Co-Pilot loaded.</b> If you can read this, HTML/CSS is rendering. If the dashboard below is blank, it’s JavaScript or the video preview crashing iOS Safari.</div>
+
+<!-- BOOT_OK_BANNER_V10 -->
+<div style="position:sticky;top:0;z-index:999999;padding:12px 14px;background:#a3ff12;color:#062100;font:14px/1.2 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono','Courier New', monospace;border-bottom:3px solid rgba(0,0,0,.35)">BOOT OK (V10) — If you can’t see this, you are not loading the updated HTML.</div>
+
+<!-- BOOT_OK_BANNER_V2 -->
+<div id="bootOk" style="position:sticky;top:0;z-index:99999;padding:10px 12px;
+background:#16a34a;color:#001b08;font-weight:800;letter-spacing:.2px;
+border-bottom:2px solid rgba(0,0,0,.25)">
+  BOOT OK — HTML is rendering. If the rest is blank, CSS/JS/video is nuking layout.
+</div>
+
+  <!-- UI_DEBUG_BANNER_V1 -->
+  <div style="padding:12px 16px; background:#fffbcc; color:#111; font:14px system-ui; position:sticky; top:0; z-index:9999; border-bottom:1px solid #e6d98a;">
+    ✅ Stream Co-Pilot UI loaded. If the dashboard looks blank, scroll down and check the error box below.
+  </div>
+  <pre id="jsErrors" style="margin:0; padding:10px 16px; white-space:pre-wrap; background:#2a0f12; color:#ffd5dc; border-bottom:1px solid #5b1b24; display:none;"></pre>
+
+  <div class="top">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
       <div>
         <div class="title">Stream Co-Pilot</div>
@@ -78,7 +95,8 @@ def render_home() -> str:
       </div>
       <div style="display:flex;gap:8px;align-items:center;">
         <span class="pill"><span class="dot" id="statusDot"></span><span id="statusTxt">Connecting</span></span>
-<button class="btn" onclick="refreshNow()">Refresh</button>
+        <button class="btn" id="startPreviewBtn" onclick="startPreviewClick()">Start Preview</button>
+        <button class="btn" onclick="refreshNow()">Refresh</button>
       </div>
     </div>
   </div>
@@ -133,13 +151,9 @@ def render_home() -> str:
     <div class="card">
       <h2>Stream preview</h2>
       <div class="muted" id="previewMeta">STREAM_PREVIEW_CARD_V1: Waiting for HLS… (Start Streaming in OBS)</div>
-<div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-  <span class="muted mono" id="previewDbg" style="opacity:.85;">DBG: pending</span>
-</div>
-<div class="muted mono"  style="margin-top:6px;opacity:.85;">—</div>
+<div class="muted mono" id="previewDbg" style="margin-top:6px;opacity:.85;">—</div>
       <div style="height:10px"></div>
       <div class="previewWrap">
-  <div class="overlayTop" id="tapToStart" style="right:10px;left:auto;display:none;">Tap to start preview</div>
   <div class="overlayTop" id="overlayTop">Captions: ON</div>
   <video id="preview" controls playsinline muted
              style="width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:#0e0e14;">
@@ -314,14 +328,66 @@ def render_home() -> str:
   }
 
   function escapeHtml(s){
-    return String(s).replace(/[&<>"']/g, c => ({
-      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-    }[c]));
+
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
+  
+  async function setPreview(force=false){
+    const v = document.getElementById("preview");
+    const meta = document.getElementById("previewMeta");
+    const dbg = document.getElementById("previewDbg");
+    if(dbg){
+      const canNative = (v && v.canPlayType) ? v.canPlayType('application/vnd.apple.mpegurl') : '';
+      const hasHls = !!(window.Hls);
+      dbg.textContent = `DBG: nativeHLS=${canNative||'no'} hlsjs=${hasHls?'yes':'no'} src=${v.currentSrc||v.src||'-'}`;
+    }
+    v.addEventListener('error', ()=>{ try{ const e=v.error; if(dbg) dbg.textContent = `DBG: VIDEO ERROR code=${e?e.code:'?'} src=${v.currentSrc||v.src||'-'}`; }catch(_){} });
 
+    if(!v || !meta) return;
 
+    if(v.dataset.bound === "1" && !force) return;
 
+    const hlsUrl = `${location.protocol}//${location.hostname}/hls/preview.m3u8`;
 
+    try{
+      const r = await fetch(hlsUrl, { cache: "no-store" });
+      if(!r.ok) throw new Error("playlist " + r.status);
+
+      // Safari/iOS: native HLS
+      if (v.canPlayType('application/vnd.apple.mpegurl')) {
+        v.src = hlsUrl;
+        v.muted = true;
+        v.playsInline = true;
+        try { await v.play(); } catch(e) {}
+        v.dataset.bound = "1";
+        meta.textContent = "Live preview (native HLS).";
+        return;
+      }
+
+      // Chrome/Firefox: hls.js
+      if (window.Hls && window.Hls.isSupported()) {
+        const hls = new window.Hls({
+          liveSyncDuration: 1.2,
+          liveMaxLatencyDuration: 4,
+          enableWorker: true,
+        });
+        hls.loadSource(hlsUrl);
+        hls.attachMedia(v);
+        hls.on(window.Hls.Events.MANIFEST_PARSED, async () => {
+          v.muted = true;
+          v.playsInline = true;
+          try { await v.play(); } catch(e) {}
+        });
+        v.dataset.bound = "1";
+        meta.textContent = "Live preview (hls.js).";
+        return;
+      }
+
+      meta.textContent = "HLS not supported in this browser.";
+    }catch(e){
+      // keep waiting; tick() will try again
+    }
+  }
 
   let tickTimer = null;
   let tickRunning = false;
@@ -336,7 +402,7 @@ def render_home() -> str:
       st.transcript = tx;
       setStatus(true);
       render(st);
-      /* preview bind is click-driven */
+      setPreview();
     }catch(e){
       setStatus(false);
       el("topline").textContent = "Disconnected…";
@@ -346,6 +412,10 @@ def render_home() -> str:
   }
 
   async function refreshNow(){ await tick(); }
+
+  async function startPreviewClick(){
+    try{ await setPreview(true); }catch(e){}
+  }
 
 
   async function resKey(ev){
@@ -409,184 +479,8 @@ def render_home() -> str:
       }
     }catch(e){}
   }
-  setInterval(()=>{ try{ const v=el('preview'); if(v && v.currentSrc && v.readyState>=2) snapToLiveEdge(); }catch(e){} }, 750);
+  setInterval(snapToLiveEdge, 750);
 
-    // === Preview (single path, click-driven) ===
-  // Works on Safari native HLS, and uses hls.js on others.
-  let __hls = null;
-
-  function bindPreviewPlayer(force=false){
-    const v = document.getElementById("preview");
-    const meta = document.getElementById("previewMeta");
-    const dbg = document.getElementById("previewDbg");
-    if(!v || !meta) return;
-
-    // cache-bust playlist so Safari doesn't cling to stale m3u8
-    const hlsUrl = `${location.protocol}//${location.hostname}/hls/preview.m3u8?v=${Date.now()}`;
-
-    // One-time error hook
-    if(v.dataset.errBound !== "1"){
-      v.addEventListener("error", ()=>{
-        try{
-          const e = v.error;
-          if(dbg) dbg.textContent = `DBG: VIDEO ERROR code=${e?e.code:'?'} src=${v.currentSrc||v.src||'-'}`;
-        }catch(_){}
-      });
-      v.dataset.errBound = "1";
-    }
-
-    // Debug line
-    try{
-      const native = v.canPlayType ? v.canPlayType("application/vnd.apple.mpegurl") : "";
-      const hasHls = !!window.Hls;
-      if(dbg) dbg.textContent = `DBG: nativeHLS=${native||'no'} hlsjs=${hasHls?'yes':'no'} url=${hlsUrl}`;
-    }catch(_){}
-
-    // reset old hls.js
-    try{ if(__hls){ __hls.destroy(); __hls=null; } }catch(_){}
-
-    // common attrs
-    v.playsInline = true;
-    v.muted = true;
-    v.autoplay = true;
-    v.setAttribute("muted","");
-    v.setAttribute("playsinline","");
-    v.setAttribute("autoplay","");
-
-    if(v.dataset.bound === "1" && !force) return;
-
-    // iOS/Safari native HLS
-    if(v.canPlayType && v.canPlayType("application/vnd.apple.mpegurl")){
-      v.src = hlsUrl;
-      v.load();
-      v.dataset.bound = "1";
-      meta.textContent = "Preview: native HLS (starting…)";
-      return;
-    }
-
-    // others: hls.js
-    if(window.Hls && window.Hls.isSupported()){
-      __hls = new window.Hls({
-        lowLatencyMode: false,
-        liveSyncDurationCount: 3,
-        enableWorker: true
-      });
-      __hls.loadSource(hlsUrl);
-      __hls.attachMedia(v);
-
-      __hls.on(window.Hls.Events.MANIFEST_PARSED, ()=>{
-        v.dataset.bound = "1";
-        meta.textContent = "Preview: hls.js attached (starting…)";
-      });
-
-      __hls.on(window.Hls.Events.ERROR, (evt, data)=>{
-        try{
-          if(dbg) dbg.textContent = `DBG: HLSJS ERROR type=${data.type} details=${data.details} fatal=${data.fatal}`;
-        }catch(_){}
-      });
-      return;
-    }
-
-    meta.textContent = "Preview unavailable: HLS not supported in this browser.";
-  }
-
-  function startPreviewClickCompat(){
-    // keep the working path for gesture-start
-    bindPreviewPlayer(true);
-    const v = document.getElementById("preview");
-    if(!v) return;
-    try{
-      const pr = v.play();
-      if(pr && pr.catch) pr.catch(()=>{});
-    }catch(_){}
-  }
-
-  // === Auto-start behavior ===
-  // Try muted autoplay immediately. If blocked, first tap anywhere starts it.
-  (function(){
-    let tried = false;
-
-    function showTap(msg){
-      const t = document.getElementById("tapToStart");
-      if(!t) return;
-      t.textContent = msg || "Tap to start preview";
-      t.style.display = "inline-flex";
-    }
-    function hideTap(){
-      const t = document.getElementById("tapToStart");
-      if(!t) return;
-      t.style.display = "none";
-    }
-
-    async function tryPlay(){
-      const v = document.getElementById("preview");
-      if(!v) return false;
-      try{
-        v.muted = true;
-        v.playsInline = true;
-        const pr = v.play();
-        if(pr && pr.then) await pr;
-        hideTap();
-        return true;
-      }catch(_){
-        showTap("Tap to start preview");
-        return false;
-      }
-    }
-
-    function start(){
-      if(tried) return;
-      tried = true;
-      showTap("Loading preview…");
-      try{ bindPreviewPlayer(true); }catch(_){}
-      tryPlay();
-    }
-
-    function startGesture(){
-      // use the known-good “click” path (it binds + play)
-      try{ startPreviewClickCompat(); }catch(_){}
-      tryPlay();
-    }
-
-    document.addEventListener("DOMContentLoaded", ()=>{
-      start();
-      window.addEventListener("pointerdown", startGesture, { once:true, passive:true });
-      window.addEventListener("touchstart", startGesture, { once:true, passive:true });
-      window.addEventListener("keydown", startGesture, { once:true, passive:true });
-    });
-
-    // If DOM already ready
-    if(document.readyState === "interactive" || document.readyState === "complete"){
-      try{ start(); }catch(_){}
-    }
-
-    // hide hint when actually playing
-    try{
-      const v = document.getElementById("preview");
-      if(v){
-        v.addEventListener("playing", hideTap, { passive:true });
-        v.addEventListener("error", ()=>showTap("Tap to retry preview"), { passive:true });
-      }
-    }catch(_){}
-  })();
-
-  // === Keep near live edge (Safari drifts) ===
-  function snapToLiveEdge(){
-    const v = document.getElementById("preview");
-    if(!v) return;
-    if(!v.currentSrc || v.readyState < 2) return;
-    try{
-      const seek = v.seekable;
-      if(seek && seek.length){
-        const liveEdge = seek.end(seek.length-1);
-        const behind = liveEdge - v.currentTime;
-        if(behind > 3.0 && isFinite(liveEdge)){
-          v.currentTime = Math.max(0, liveEdge - 0.6);
-        }
-      }
-    }catch(_){}
-  }
-  setInterval(snapToLiveEdge, 1000);
 </script>
 </body>
 </html>"""

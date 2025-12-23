@@ -63,14 +63,28 @@ def render_home() -> str:
       pointer-events:none;
     }
 
-
-
-    #startPreviewBtn{display:none !important;}
-</style>
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
-<div class="top">
+<!-- IOS_FALLBACK_BLOCK_V1 -->
+<div style="padding:14px 16px;background:#111827;color:#e5e7eb;font:14px/1.35 -apple-system,system-ui,Segoe UI,Roboto,sans-serif;border-bottom:1px solid rgba(255,255,255,.12)"><b>Stream Co-Pilot loaded.</b> If you can read this, HTML/CSS is rendering. If the dashboard below is blank, it’s JavaScript or the video preview crashing iOS Safari.</div>
+
+<!-- BOOT_OK_BANNER_V10 -->
+<div style="position:sticky;top:0;z-index:999999;padding:12px 14px;background:#a3ff12;color:#062100;font:14px/1.2 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono','Courier New', monospace;border-bottom:3px solid rgba(0,0,0,.35)">BOOT OK (V10) — If you can’t see this, you are not loading the updated HTML.</div>
+
+<!-- BOOT_OK_BANNER_V2 -->
+<div id="bootOk" style="position:sticky;top:0;z-index:99999;padding:10px 12px;
+background:#16a34a;color:#001b08;font-weight:800;letter-spacing:.2px;
+border-bottom:2px solid rgba(0,0,0,.25)">
+  BOOT OK — HTML is rendering. If the rest is blank, CSS/JS/video is nuking layout.
+</div>
+
+  <!-- UI_DEBUG_BANNER_V1 -->
+  <div style="padding:12px 16px; background:#fffbcc; color:#111; font:14px system-ui; position:sticky; top:0; z-index:9999; border-bottom:1px solid #e6d98a;">
+    ✅ Stream Co-Pilot UI loaded. If the dashboard looks blank, scroll down and check the error box below.
+  </div>
+  <pre id="jsErrors" style="margin:0; padding:10px 16px; white-space:pre-wrap; background:#2a0f12; color:#ffd5dc; border-bottom:1px solid #5b1b24; display:none;"></pre>
+
+  <div class="top">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
       <div>
         <div class="title">Stream Co-Pilot</div>
@@ -78,7 +92,7 @@ def render_home() -> str:
       </div>
       <div style="display:flex;gap:8px;align-items:center;">
         <span class="pill"><span class="dot" id="statusDot"></span><span id="statusTxt">Connecting</span></span>
-<button class="btn" onclick="refreshNow()">Refresh</button>
+        <button class="btn" onclick="refreshNow()">Refresh</button>
       </div>
     </div>
   </div>
@@ -133,17 +147,12 @@ def render_home() -> str:
     <div class="card">
       <h2>Stream preview</h2>
       <div class="muted" id="previewMeta">STREAM_PREVIEW_CARD_V1: Waiting for HLS… (Start Streaming in OBS)</div>
-<div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-  <span class="muted mono" id="previewDbg" style="opacity:.85;">DBG: pending</span>
-</div>
-<div class="muted mono"  style="margin-top:6px;opacity:.85;">—</div>
       <div style="height:10px"></div>
       <div class="previewWrap">
-  <div class="overlayTop" id="tapToStart" style="right:10px;left:auto;display:none;">Tap to start preview</div>
   <div class="overlayTop" id="overlayTop">Captions: ON</div>
   <video id="preview" controls playsinline muted
              style="width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:#0e0e14;">
-      </video>
+      </video> -->
   <div class="previewOverlay" id="previewOverlay">—</div>
 </div>
     </div>
@@ -188,18 +197,9 @@ def render_home() -> str:
 
 
   async function fetchTranscript(){
-    try{
-      const r = await fetch("/api/transcript", { cache: "no-store" });
-      if(!r.ok){
-        if(r.status === 404){
-          return { ok: false, status: "Transcript unavailable", lines: [] };
-        }
-        throw new Error("HTTP "+r.status);
-      }
-      return await r.json();
-    }catch(e){
-      return { ok: false, status: "Transcript unavailable", lines: [] };
-    }
+    const r = await fetch("/api/transcript", { cache: "no-store" });
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    return await r.json();
   }
 
   function txLine(item){
@@ -231,7 +231,6 @@ def render_home() -> str:
     const oc = (rec.overall_confidence ?? null);
     const us = (rec.usefulness ?? null);
     const cov = rec.coverage || {};
-    const liveHint = rec.live_hint || {};
     const covTxt = Object.keys(cov).length ? ("cov: " + Object.entries(cov).map(([k,v])=>`${k} ${fmtPct(v)}%`).join(" • ")) : "";
     el("aiMeta").textContent = (oc==null && us==null) ? "—" : `Confidence ${fmtPct(oc)}% • Usefulness ${fmtPct(us)}% ${covTxt ? "• " + covTxt : ""}`;
     const chat = (state.chat && state.chat.last_20) ? state.chat.last_20 : [];
@@ -256,9 +255,7 @@ def render_home() -> str:
       ? tps.map(recLine).join("")
       : `<div class="li muted">No recommendations yet.</div>`;
 
-    const liveHintText = (liveHint.text || "").trim();
-    const liveHintConf = Math.round((liveHint.confidence ?? 0) * 100);
-    el("nextQ").textContent = liveHintText ? `${liveHintText} (${liveHintConf}%)` : "—";
+    el("nextQ").textContent = (rec.next_question && rec.next_question.text) ? rec.next_question.text : (rec.next_question ?? "—");
     el("summary").textContent = rec.summary ?? "—";
 
     el("chatMeta").textContent = chat.length ? `Last ${chat.length} messages` : "No chat yet.";
@@ -314,39 +311,61 @@ def render_home() -> str:
   }
 
   function escapeHtml(s){
-    return String(s).replace(/[&<>"']/g, c => ({
-      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-    }[c]));
+
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
+  
+  async function maybeSetPreview(){
+    const v = document.getElementById("preview");
+    const meta = document.getElementById("previewMeta");
+    if(!v || !meta) return;
 
+    // If already bound, do nothing
+    if(v.dataset.bound === "1") return;
 
+    // Backoff: try at most once every 15s
+    const now = Date.now();
+    const last = Number(v.dataset.lastTry || "0");
+    if(now - last < 15000) return;
+    v.dataset.lastTry = String(now);
 
+    try{
+      const hlsUrl = `${location.protocol}//${location.hostname}/hls/preview.m3u8`;
+      const r = await fetch(hlsUrl, { method: "GET", cache: "no-store", headers: { "Range": "bytes=0-0" } });
+      if(!r.ok) throw new Error("no playlist");
+      v.src = hlsUrl;
+      try { v.load(); await v.play(); } catch(e) {}
+      v.dataset.bound = "1";
+      meta.textContent = "Live HLS preview (nginx-rtmp). If it’s black, wait ~5-10s after going live.";
+    }catch(e){
+      // keep waiting (backoff above prevents tight-loop retries)
+    }
 
-
-  let tickTimer = null;
-  let tickRunning = false;
-  const tickIntervalMs = 1200;
-
-  async function tick(){
-    if(tickRunning) return;
-    tickRunning = true;
+async function tick(){
+    // Prevent overlapping runs (browser death spiral prevention)
+    if(window.__tickRunning) return;
+    window.__tickRunning = true;
     try{
       const st = await fetchState();
       const tx = await fetchTranscript();
       st.transcript = tx;
+      /* RENDER_DEDUPE_V1 */
+      const sig = JSON.stringify(st);
+      if (window.__lastSig === sig) return;
+      window.__lastSig = sig;
       setStatus(true);
       render(st);
-      /* preview bind is click-driven */
+
+      // Preview: only attempt occasionally and only on non-iOS
+      if(!/iPad|iPhone|iPod/i.test(navigator.userAgent)) { maybeSetPreview(); } // IOS_SKIP_PREVIEW_V1
     }catch(e){
       setStatus(false);
       el("topline").textContent = "Disconnected…";
-    }finally{
-      tickRunning = false;
+    } finally {
+      window.__tickRunning = false;
     }
-  }
 
   async function refreshNow(){ await tick(); }
-
 
   async function resKey(ev){
     if(ev.key !== "Enter") return;
@@ -369,30 +388,6 @@ def render_home() -> str:
       alert("Save failed: " + (e && e.message ? e.message : e));
     }
   }
-
-  function scheduleTick(){
-    if(tickTimer) return;
-    if(document.hidden) return;
-    tickTimer = setInterval(() => { tick(); }, tickIntervalMs);
-  }
-
-  function stopTick(){
-    if(!tickTimer) return;
-    clearInterval(tickTimer);
-    tickTimer = null;
-  }
-
-  document.addEventListener("visibilitychange", () => {
-    if(document.hidden){
-      stopTick();
-    }else{
-      tick();
-      scheduleTick();
-    }
-  });
-
-  tick();
-  scheduleTick();
   // --- keep HLS preview near the live edge (iPad Safari drifts) ---
   function snapToLiveEdge(){
     const v = el("preview");
@@ -409,184 +404,27 @@ def render_home() -> str:
       }
     }catch(e){}
   }
-  setInterval(()=>{ try{ const v=el('preview'); if(v && v.currentSrc && v.readyState>=2) snapToLiveEdge(); }catch(e){} }, 750);
-
-    // === Preview (single path, click-driven) ===
-  // Works on Safari native HLS, and uses hls.js on others.
-  let __hls = null;
-
-  function bindPreviewPlayer(force=false){
-    const v = document.getElementById("preview");
-    const meta = document.getElementById("previewMeta");
-    const dbg = document.getElementById("previewDbg");
-    if(!v || !meta) return;
-
-    // cache-bust playlist so Safari doesn't cling to stale m3u8
-    const hlsUrl = `${location.protocol}//${location.hostname}/hls/preview.m3u8?v=${Date.now()}`;
-
-    // One-time error hook
-    if(v.dataset.errBound !== "1"){
-      v.addEventListener("error", ()=>{
-        try{
-          const e = v.error;
-          if(dbg) dbg.textContent = `DBG: VIDEO ERROR code=${e?e.code:'?'} src=${v.currentSrc||v.src||'-'}`;
-        }catch(_){}
-      });
-      v.dataset.errBound = "1";
-    }
-
-    // Debug line
-    try{
-      const native = v.canPlayType ? v.canPlayType("application/vnd.apple.mpegurl") : "";
-      const hasHls = !!window.Hls;
-      if(dbg) dbg.textContent = `DBG: nativeHLS=${native||'no'} hlsjs=${hasHls?'yes':'no'} url=${hlsUrl}`;
-    }catch(_){}
-
-    // reset old hls.js
-    try{ if(__hls){ __hls.destroy(); __hls=null; } }catch(_){}
-
-    // common attrs
-    v.playsInline = true;
-    v.muted = true;
-    v.autoplay = true;
-    v.setAttribute("muted","");
-    v.setAttribute("playsinline","");
-    v.setAttribute("autoplay","");
-
-    if(v.dataset.bound === "1" && !force) return;
-
-    // iOS/Safari native HLS
-    if(v.canPlayType && v.canPlayType("application/vnd.apple.mpegurl")){
-      v.src = hlsUrl;
-      v.load();
-      v.dataset.bound = "1";
-      meta.textContent = "Preview: native HLS (starting…)";
-      return;
-    }
-
-    // others: hls.js
-    if(window.Hls && window.Hls.isSupported()){
-      __hls = new window.Hls({
-        lowLatencyMode: false,
-        liveSyncDurationCount: 3,
-        enableWorker: true
-      });
-      __hls.loadSource(hlsUrl);
-      __hls.attachMedia(v);
-
-      __hls.on(window.Hls.Events.MANIFEST_PARSED, ()=>{
-        v.dataset.bound = "1";
-        meta.textContent = "Preview: hls.js attached (starting…)";
-      });
-
-      __hls.on(window.Hls.Events.ERROR, (evt, data)=>{
-        try{
-          if(dbg) dbg.textContent = `DBG: HLSJS ERROR type=${data.type} details=${data.details} fatal=${data.fatal}`;
-        }catch(_){}
-      });
-      return;
-    }
-
-    meta.textContent = "Preview unavailable: HLS not supported in this browser.";
-  }
-
-  function startPreviewClickCompat(){
-    // keep the working path for gesture-start
-    bindPreviewPlayer(true);
-    const v = document.getElementById("preview");
-    if(!v) return;
-    try{
-      const pr = v.play();
-      if(pr && pr.catch) pr.catch(()=>{});
-    }catch(_){}
-  }
-
-  // === Auto-start behavior ===
-  // Try muted autoplay immediately. If blocked, first tap anywhere starts it.
+  if(/iPad|iPhone|iPod/i.test(navigator.userAgent)) { setInterval(snapToLiveEdge, 1500); }
+/* TICK_GUARD_V1 */
   (function(){
-    let tried = false;
+    let running = false;
 
-    function showTap(msg){
-      const t = document.getElementById("tapToStart");
-      if(!t) return;
-      t.textContent = msg || "Tap to start preview";
-      t.style.display = "inline-flex";
-    }
-    function hideTap(){
-      const t = document.getElementById("tapToStart");
-      if(!t) return;
-      t.style.display = "none";
-    }
-
-    async function tryPlay(){
-      const v = document.getElementById("preview");
-      if(!v) return false;
-      try{
-        v.muted = true;
-        v.playsInline = true;
-        const pr = v.play();
-        if(pr && pr.then) await pr;
-        hideTap();
-        return true;
-      }catch(_){
-        showTap("Tap to start preview");
-        return false;
+    /* VISIBILITY_PAUSE_V1 */
+    async function guardedTick(){
+      if (document.hidden) return;
+      if(running) return;
+      running = true;
+      try {
+        await tick();
+      } finally {
+        running = false;
       }
     }
 
-    function start(){
-      if(tried) return;
-      tried = true;
-      showTap("Loading preview…");
-      try{ bindPreviewPlayer(true); }catch(_){}
-      tryPlay();
-    }
-
-    function startGesture(){
-      // use the known-good “click” path (it binds + play)
-      try{ startPreviewClickCompat(); }catch(_){}
-      tryPlay();
-    }
-
-    document.addEventListener("DOMContentLoaded", ()=>{
-      start();
-      window.addEventListener("pointerdown", startGesture, { once:true, passive:true });
-      window.addEventListener("touchstart", startGesture, { once:true, passive:true });
-      window.addEventListener("keydown", startGesture, { once:true, passive:true });
-    });
-
-    // If DOM already ready
-    if(document.readyState === "interactive" || document.readyState === "complete"){
-      try{ start(); }catch(_){}
-    }
-
-    // hide hint when actually playing
-    try{
-      const v = document.getElementById("preview");
-      if(v){
-        v.addEventListener("playing", hideTap, { passive:true });
-        v.addEventListener("error", ()=>showTap("Tap to retry preview"), { passive:true });
-      }
-    }catch(_){}
+    // First paint + steady polling (2s)
+    try{ guardedTick(); }catch(e){}
+    setInterval(()=>{ try{ guardedTick(); }catch(e){} }, 5000);
   })();
-
-  // === Keep near live edge (Safari drifts) ===
-  function snapToLiveEdge(){
-    const v = document.getElementById("preview");
-    if(!v) return;
-    if(!v.currentSrc || v.readyState < 2) return;
-    try{
-      const seek = v.seekable;
-      if(seek && seek.length){
-        const liveEdge = seek.end(seek.length-1);
-        const behind = liveEdge - v.currentTime;
-        if(behind > 3.0 && isFinite(liveEdge)){
-          v.currentTime = Math.max(0, liveEdge - 0.6);
-        }
-      }
-    }catch(_){}
-  }
-  setInterval(snapToLiveEdge, 1000);
 </script>
 </body>
 </html>"""

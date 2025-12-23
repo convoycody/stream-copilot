@@ -64,8 +64,6 @@ def render_home() -> str:
     }
 
 
-
-    #startPreviewBtn{display:none !important;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
@@ -78,7 +76,8 @@ def render_home() -> str:
       </div>
       <div style="display:flex;gap:8px;align-items:center;">
         <span class="pill"><span class="dot" id="statusDot"></span><span id="statusTxt">Connecting</span></span>
-<button class="btn" onclick="refreshNow()">Refresh</button>
+        <button class="btn" id="startPreviewBtn" onclick="startPreviewClickCompat()">Start Preview</button>
+        <button class="btn" onclick="refreshNow()">Refresh</button>
       </div>
     </div>
   </div>
@@ -139,7 +138,6 @@ def render_home() -> str:
 <div class="muted mono"  style="margin-top:6px;opacity:.85;">—</div>
       <div style="height:10px"></div>
       <div class="previewWrap">
-  <div class="overlayTop" id="tapToStart" style="right:10px;left:auto;display:none;">Tap to start preview</div>
   <div class="overlayTop" id="overlayTop">Captions: ON</div>
   <video id="preview" controls playsinline muted
              style="width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:#0e0e14;">
@@ -411,7 +409,7 @@ def render_home() -> str:
   }
   setInterval(()=>{ try{ const v=el('preview'); if(v && v.currentSrc && v.readyState>=2) snapToLiveEdge(); }catch(e){} }, 750);
 
-    // === Preview (single path, click-driven) ===
+  // === Preview (single path, click-driven) ===
   // Works on Safari native HLS, and uses hls.js on others.
   let __hls = null;
 
@@ -421,10 +419,9 @@ def render_home() -> str:
     const dbg = document.getElementById("previewDbg");
     if(!v || !meta) return;
 
-    // cache-bust playlist so Safari doesn't cling to stale m3u8
     const hlsUrl = `${location.protocol}//${location.hostname}/hls/preview.m3u8?v=${Date.now()}`;
 
-    // One-time error hook
+    // One-time-ish event wiring
     if(v.dataset.errBound !== "1"){
       v.addEventListener("error", ()=>{
         try{
@@ -442,32 +439,29 @@ def render_home() -> str:
       if(dbg) dbg.textContent = `DBG: nativeHLS=${native||'no'} hlsjs=${hasHls?'yes':'no'} url=${hlsUrl}`;
     }catch(_){}
 
-    // reset old hls.js
+    // Reset old hls.js instance
     try{ if(__hls){ __hls.destroy(); __hls=null; } }catch(_){}
 
-    // common attrs
+    // Always set common attributes
     v.playsInline = true;
     v.muted = true;
-    v.autoplay = true;
-    v.setAttribute("muted","");
-    v.setAttribute("playsinline","");
-    v.setAttribute("autoplay","");
 
+    // If already bound and not forcing, do nothing
     if(v.dataset.bound === "1" && !force) return;
 
-    // iOS/Safari native HLS
+    // Safari / iOS native HLS
     if(v.canPlayType && v.canPlayType("application/vnd.apple.mpegurl")){
       v.src = hlsUrl;
       v.load();
       v.dataset.bound = "1";
-      meta.textContent = "Preview: native HLS (starting…)";
+      meta.textContent = "Preview: native HLS (tap Play).";
       return;
     }
 
-    // others: hls.js
+    // Desktop browsers: hls.js
     if(window.Hls && window.Hls.isSupported()){
       __hls = new window.Hls({
-        lowLatencyMode: false,
+        lowLatencyMode: false,          // nginx-rtmp is not LL-HLS
         liveSyncDurationCount: 3,
         enableWorker: true
       });
@@ -476,7 +470,7 @@ def render_home() -> str:
 
       __hls.on(window.Hls.Events.MANIFEST_PARSED, ()=>{
         v.dataset.bound = "1";
-        meta.textContent = "Preview: hls.js attached (starting…)";
+        meta.textContent = "Preview: hls.js attached (tap Play).";
       });
 
       __hls.on(window.Hls.Events.ERROR, (evt, data)=>{
@@ -491,7 +485,6 @@ def render_home() -> str:
   }
 
   function startPreviewClickCompat(){
-    // keep the working path for gesture-start
     bindPreviewPlayer(true);
     const v = document.getElementById("preview");
     if(!v) return;
@@ -501,76 +494,7 @@ def render_home() -> str:
     }catch(_){}
   }
 
-  // === Auto-start behavior ===
-  // Try muted autoplay immediately. If blocked, first tap anywhere starts it.
-  (function(){
-    let tried = false;
-
-    function showTap(msg){
-      const t = document.getElementById("tapToStart");
-      if(!t) return;
-      t.textContent = msg || "Tap to start preview";
-      t.style.display = "inline-flex";
-    }
-    function hideTap(){
-      const t = document.getElementById("tapToStart");
-      if(!t) return;
-      t.style.display = "none";
-    }
-
-    async function tryPlay(){
-      const v = document.getElementById("preview");
-      if(!v) return false;
-      try{
-        v.muted = true;
-        v.playsInline = true;
-        const pr = v.play();
-        if(pr && pr.then) await pr;
-        hideTap();
-        return true;
-      }catch(_){
-        showTap("Tap to start preview");
-        return false;
-      }
-    }
-
-    function start(){
-      if(tried) return;
-      tried = true;
-      showTap("Loading preview…");
-      try{ bindPreviewPlayer(true); }catch(_){}
-      tryPlay();
-    }
-
-    function startGesture(){
-      // use the known-good “click” path (it binds + play)
-      try{ startPreviewClickCompat(); }catch(_){}
-      tryPlay();
-    }
-
-    document.addEventListener("DOMContentLoaded", ()=>{
-      start();
-      window.addEventListener("pointerdown", startGesture, { once:true, passive:true });
-      window.addEventListener("touchstart", startGesture, { once:true, passive:true });
-      window.addEventListener("keydown", startGesture, { once:true, passive:true });
-    });
-
-    // If DOM already ready
-    if(document.readyState === "interactive" || document.readyState === "complete"){
-      try{ start(); }catch(_){}
-    }
-
-    // hide hint when actually playing
-    try{
-      const v = document.getElementById("preview");
-      if(v){
-        v.addEventListener("playing", hideTap, { passive:true });
-        v.addEventListener("error", ()=>showTap("Tap to retry preview"), { passive:true });
-      }
-    }catch(_){}
-  })();
-
-  // === Keep near live edge (Safari drifts) ===
+  // Optional: keep near-live edge only AFTER playback is healthy
   function snapToLiveEdge(){
     const v = document.getElementById("preview");
     if(!v) return;
@@ -587,6 +511,9 @@ def render_home() -> str:
     }catch(_){}
   }
   setInterval(snapToLiveEdge, 1000);
+
+
+
 </script>
 </body>
 </html>"""

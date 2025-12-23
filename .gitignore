@@ -1,26 +1,24 @@
-# Python bytecode
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Virtualenvs
-.venv/
-venv/
-ENV/
-env/
-
-# OS / editor
-.DS_Store
-*.swp
-
-# Logs
-*.log
-
-# Local env files / secrets
+# secrets
 .env
 .env.*
-!/env.example
 !/\.env\.example
 
-# Backups created during patching
-*.bak.*
+# python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# logs/runtime
+*.log
+tmp/
+run/
+.cache/
+
+# OS/editor
+.DS_Store
